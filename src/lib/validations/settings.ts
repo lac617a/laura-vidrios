@@ -1,0 +1,91 @@
+import { z } from "zod";
+
+import { normalizeWhatsappNumber } from "@/lib/whatsapp";
+
+// Esquema compartido por el formulario (cliente) y la Server Action (servidor).
+// Las listas se editan como texto, una opción por línea.
+
+const text = (max: number) => z.string().trim().max(max, `Máximo ${max} caracteres.`);
+
+const optionalUrl = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || /^https:\/\/\S+$/.test(value), {
+    message: "Debe ser un enlace que empiece por https://",
+  });
+
+const centimeters = z
+  .number({ error: "Escribe un número." })
+  .int("Usa centímetros enteros.")
+  .min(1, "Debe ser mayor que 0.")
+  .max(1000, "Máximo 1000 cm.");
+
+export const settingsFormSchema = z
+  .object({
+    businessName: z
+      .string()
+      .trim()
+      .min(2, "Escribe el nombre del negocio.")
+      .max(80, "Máximo 80 caracteres."),
+    address: text(200),
+    openingHours: text(200),
+    instagramUrl: optionalUrl,
+    facebookUrl: optionalUrl,
+    tiktokUrl: optionalUrl,
+    whatsappNumber: z
+      .string()
+      .trim()
+      .refine((value) => normalizeWhatsappNumber(value) !== null, {
+        message: "Debe ser un celular colombiano: 10 dígitos que empiezan por 3.",
+      }),
+    referencePrefix: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(/^[A-Z0-9]{2,6}$/, "Entre 2 y 6 letras o números, sin espacios."),
+    shippingInfo: text(1000),
+    installationInfo: text(1000),
+    coverageAreas: text(2000),
+    customMinCm: centimeters,
+    customMaxCm: centimeters,
+    customFrameOptions: text(2000),
+    privacyPolicy: text(20000),
+  })
+  .refine((values) => values.customMinCm < values.customMaxCm, {
+    path: ["customMaxCm"],
+    message: "Debe ser mayor que la medida mínima.",
+  });
+
+export type SettingsFormValues = z.infer<typeof settingsFormSchema>;
+
+/** Texto con una opción por línea (o separadas por coma) → lista limpia y sin duplicados. */
+export function parseList(value: string): string[] {
+  const items = value
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return [...new Set(items)];
+}
+
+const nullIfEmpty = (value: string) => (value === "" ? null : value);
+
+/** Valores del formulario → datos para guardar en SiteSettings. */
+export function toSettingsData(values: SettingsFormValues) {
+  return {
+    businessName: values.businessName,
+    address: nullIfEmpty(values.address),
+    openingHours: nullIfEmpty(values.openingHours),
+    instagramUrl: nullIfEmpty(values.instagramUrl),
+    facebookUrl: nullIfEmpty(values.facebookUrl),
+    tiktokUrl: nullIfEmpty(values.tiktokUrl),
+    whatsappNumber: normalizeWhatsappNumber(values.whatsappNumber)!,
+    referencePrefix: values.referencePrefix,
+    shippingInfo: nullIfEmpty(values.shippingInfo),
+    installationInfo: nullIfEmpty(values.installationInfo),
+    coverageAreas: parseList(values.coverageAreas),
+    customMinCm: values.customMinCm,
+    customMaxCm: values.customMaxCm,
+    customFrameOptions: parseList(values.customFrameOptions),
+    privacyPolicy: nullIfEmpty(values.privacyPolicy),
+  };
+}

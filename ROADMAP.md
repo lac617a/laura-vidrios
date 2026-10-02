@@ -11,7 +11,7 @@
 | Sprint | Feature | Resultado | Hito | Estado |
 |--------|---------|-----------|------|--------|
 | S0 | Fundaciones | Proyecto base, BD local + Neon, deploy y CI | | 🟨 En curso (falta Neon/Vercel/GitHub) |
-| S1 | Acceso y configuración del negocio | Login del admin, nombre y WhatsApp configurables | | ⬜ Pendiente |
+| S1 | Acceso y configuración del negocio | Login del admin, nombre y WhatsApp configurables | | ✅ Hecho en local (falta probar en producción) |
 | S2 | Categorías y productos | CRUD de catálogo con variantes de medida y precios COP | | ⬜ Pendiente |
 | S3 | Imágenes de producto | Subida a Cloudinary, orden y portada | 🏁 **A** | ⬜ Pendiente |
 | S4 | Catálogo público | `/espejos` con filtros, búsqueda y animaciones | | ⬜ Pendiente |
@@ -110,24 +110,24 @@ gantt
 **Depende de:** S0
 
 **Tareas**
-- [ ] Better Auth con adaptador Prisma: email y contraseña, `disableSignUp`, rate limit. Migración de tablas de auth + `role`.
-- [ ] `scripts/create-admin.ts` para crear el primer usuario (local y producción).
-- [ ] `/admin/login`.
-- [ ] `proxy.ts` protege `/admin/*` y el helper `requireAdmin()` se usa en layouts y Server Actions.
-- [ ] Layout del admin: sidebar en desktop, drawer en móvil.
-- [ ] `/admin/configuracion` por secciones:
-  - [ ] **Negocio:** nombre, dirección, horario y redes. El campo del logo queda listo y la subida se conecta en S3.
-  - [ ] **WhatsApp:** número con validación `57` + 10 dígitos y botón "Probar enlace".
-  - [ ] **Referencias:** prefijo (por defecto `ESP`).
-  - [ ] **Servicios:** textos de envío e instalación y ciudades o zonas de cobertura.
-  - [ ] **A la medida:** medida mínima y máxima, y opciones de marco y acabado.
-  - [ ] **Legal:** texto de la política de tratamiento de datos.
-- [ ] `getSettings()` cacheado con el tag `settings` e invalidado al guardar.
-- [ ] Header y footer públicos provisionales que leen `businessName`.
+- [x] Better Auth 1.7 con adaptador Prisma: email y contraseña, `disableSignUp`, rate limit en BD (5 intentos por minuto). Migración `auth` con las tablas y `role`.
+- [x] `pnpm admin:create` crea o actualiza usuarios (local, o producción con `--env-file`). El seed crea `admin@local.test` y `editor@local.test` solo en local.
+- [x] `/admin/login` con validación, mensaje de error y regreso a la página pedida (`?next=`).
+- [x] `proxy.ts` hace el chequeo optimista de `/admin/*`. `requireAdmin()` (páginas) y `authorizeAction()` (Server Actions, 401/403) en `src/lib/dal.ts`.
+- [x] Layout del admin: sidebar colapsable en desktop, drawer en móvil, menú de usuario con cerrar sesión. Secciones futuras marcadas "Pronto".
+- [x] `/admin/configuracion` por secciones (solo rol `OWNER`; `EDITOR` ve "Sin acceso"):
+  - [x] **Negocio:** nombre, dirección, horario y redes. La subida del logo pasa a S3.
+  - [x] **WhatsApp:** acepta `300 123 4567`, `+57…` o `57…`, lo normaliza en vivo y tiene botón "Probar".
+  - [x] **Referencias:** prefijo (por defecto `ESP`).
+  - [x] **Servicios:** textos de envío e instalación y ciudades de cobertura (una por línea).
+  - [x] **A la medida:** medida mínima y máxima (validadas) y marcos y acabados.
+  - [x] **Legal:** texto de la política de tratamiento de datos.
+- [x] `getSettings()` con `"use cache"` + `cacheTag("settings")`, invalidado con `updateTag` al guardar.
+- [x] Header y footer públicos provisionales con nombre, WhatsApp, horario y redes.
 
 **Demo / terminado cuando**
-- La dueña inicia sesión **en producción**, cambia el nombre y el número, y el sitio muestra el cambio en menos de 1 minuto.
-- Una ruta `/admin/*` sin sesión redirige al login, y una Server Action sin sesión responde 401.
+- [ ] La dueña inicia sesión **en producción**, cambia el nombre y el número, y el sitio muestra el cambio en menos de 1 minuto. *(Probado en local: el cambio es inmediato. Falta el deploy de S0.)*
+- [x] Una ruta `/admin/*` sin sesión redirige al login. Las Server Actions verifican la sesión con `authorizeAction()` y responden 401/403.
 
 ---
 

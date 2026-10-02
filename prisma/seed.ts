@@ -8,6 +8,7 @@ import "dotenv/config";
 
 import { PrismaPg } from "@prisma/adapter-pg";
 
+import { upsertAdminUser } from "../scripts/lib/admin-user";
 import {
   Availability,
   InquiryStatus,
@@ -15,6 +16,7 @@ import {
   MirrorShape,
   PrismaClient,
   ProductStatus,
+  Role,
 } from "../src/generated/prisma/client";
 import { normalizeSearchText, slugify } from "../src/lib/text";
 
@@ -330,6 +332,7 @@ async function main() {
   });
 
   await seedInquiries();
+  await seedUsers();
 
   const [categoryCount, productCount, variantCount] = await Promise.all([
     prisma.category.count(),
@@ -338,6 +341,26 @@ async function main() {
   ]);
   console.log(
     `✅ ${categoryCount} categorías, ${productCount} productos, ${variantCount} variantes.`,
+  );
+}
+
+/** Usuarios de desarrollo (solo existen en la BD local). Credenciales en .env.example. */
+async function seedUsers() {
+  const password = process.env.SEED_ADMIN_PASSWORD ?? "espejos-local-2026";
+  await upsertAdminUser(prisma, {
+    email: "admin@local.test",
+    name: "Admin Local",
+    role: Role.OWNER,
+    password,
+  });
+  await upsertAdminUser(prisma, {
+    email: "editor@local.test",
+    name: "Editor Local",
+    role: Role.EDITOR,
+    password,
+  });
+  console.log(
+    "👤 Usuarios locales: admin@local.test (acceso total) y editor@local.test (edición).",
   );
 }
 

@@ -25,6 +25,12 @@ pnpm install
 cp .env.example .env
 ```
 
+Genera un secreto y pégalo en `BETTER_AUTH_SECRET` dentro de `.env`:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
 ```bash
 pnpm db:start
 ```
@@ -49,6 +55,8 @@ pnpm dev
 
 Abre <http://localhost:3000>. `GET /api/health` confirma la conexión con la base de datos.
 
+El panel está en <http://localhost:3000/admin>. El seed crea dos usuarios **solo en la BD local**: `admin@local.test` (acceso total) y `editor@local.test` (edición). La contraseña está en `.env.example`.
+
 ## Scripts
 
 | Script                                 | Qué hace                                                    |
@@ -61,6 +69,7 @@ Abre <http://localhost:3000>. `GET /api/health` confirma la conexión con la bas
 | `pnpm db:deploy`                       | Aplica migraciones existentes (lo que corre en Vercel)      |
 | `pnpm db:seed`                         | Reemplaza el catálogo local con datos de prueba             |
 | `pnpm db:studio`                       | Prisma Studio para ver la BD                                |
+| `pnpm admin:create`                    | Crea o actualiza un usuario del panel (pide la contraseña)  |
 
 ## Entornos y datos
 
@@ -81,5 +90,18 @@ Reglas (PRD §9.2):
 
 1. Importar el repositorio en Vercel (framework Next.js). `vercel.json` ya define el build command `pnpm db:deploy && pnpm build`.
 2. En el proyecto de Vercel: **Storage → Neon → Create**. Elegir la región `us-east-1` y Postgres 18, y activar las ramas para previews. La integración crea `DATABASE_URL` (con pooler) y `DATABASE_URL_UNPOOLED` (directa).
-3. Agregar `NEXT_PUBLIC_SITE_URL` con la URL `https://<proyecto>.vercel.app`.
+3. Agregar las variables de entorno:
+   - `NEXT_PUBLIC_SITE_URL` y `BETTER_AUTH_URL` con la URL `https://<proyecto>.vercel.app`.
+   - `BETTER_AUTH_SECRET`: un secreto para Production y **otro distinto** para Preview.
 4. Desplegar y verificar `https://<proyecto>.vercel.app/api/health`.
+5. Crear la cuenta de la dueña en producción. Descarga temporalmente las variables de producción:
+
+   ```bash
+   vercel env pull .env.production.local --environment=production
+   ```
+
+   ```bash
+   pnpm admin:create --env-file .env.production.local
+   ```
+
+   Pide escribir `CONFIRMAR` porque la base no es local. Después borra `.env.production.local`.

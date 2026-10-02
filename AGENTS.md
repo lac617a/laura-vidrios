@@ -18,4 +18,7 @@ Catálogo de espejos (Colombia, COP). Alcance en `PRD.md`, plan en `ROADMAP.md`:
 - `cacheComponents: true`: lecturas de BD por request van con `await connection()` dentro de `<Suspense>`, o se cachean con `"use cache"` + `cacheTag`.
 - Base de datos: **nunca** ejecutes `migrate dev`, `migrate reset`, `db push` ni el seed contra Neon. Solo `pnpm db:deploy` en Vercel.
 - Precios en COP como enteros (IVA incluido). Medidas en centímetros enteros.
+- `pnpm build` necesita la BD accesible: `getSettings()` (`"use cache"`) se prerenderiza en el build.
+- Auth: lee la sesión solo con `src/lib/dal.ts` (`requireAdmin()` en páginas, `authorizeAction()` en cada Server Action). Configuración del negocio: solo rol `OWNER`. Tras mutar datos cacheados, llama a `updateTag(<tag>)`.
+- Componentes de `src/components/ui` (shadcn, base-nova/Base UI): usan `render={<Link …/>}` en vez de `asChild`. Nada de `Math.random()` ni `Date.now()` en fallbacks de Suspense (rompe el prerender).
 - Antes de terminar: `pnpm format:check && pnpm lint && pnpm typecheck && pnpm build`.
