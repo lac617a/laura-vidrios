@@ -1,0 +1,5 @@
+pnpm-lock.yaml
+.next/
+src/generated/
+prisma/migrations/
+*.md

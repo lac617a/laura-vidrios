@@ -1,0 +1,218 @@
+// Modelo de datos — ver PRD.md §10.
+// La URL de conexión se define en prisma.config.ts (Prisma 7).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum Availability {
+  IN_STOCK
+  MADE_TO_ORDER
+  OUT_OF_STOCK
+}
+
+enum MirrorShape {
+  RECTANGULAR
+  SQUARE
+  ROUND
+  OVAL
+  ARCH
+  ORGANIC
+  OTHER
+}
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  QUOTED
+  WON
+  LOST
+}
+
+/// CATALOG: producto del catálogo · CUSTOM: a la medida · GENERAL: botón flotante
+enum InquiryType {
+  CATALOG
+  CUSTOM
+  GENERAL
+}
+
+enum Role {
+  OWNER
+  EDITOR
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  imageUrl    String?
+  position    Int       @default(0)
+  isActive    Boolean   @default(true)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id              String           @id @default(cuid())
+  /// ESP-0001 (prefijo configurable en SiteSettings)
+  reference       String           @unique
+  name            String
+  slug            String           @unique
+  description     String?
+  shape           MirrorShape
+  /// aluminio, madera, sin marco…
+  frameMaterial   String?
+  frameColor      String?
+  /// moderno, vintage, minimalista…
+  style           String?
+  hasLed          Boolean          @default(false)
+  /// nombre + referencia sin tildes y en minúsculas, para la búsqueda
+  searchText      String
+  isFeatured      Boolean          @default(false)
+  showPrice       Boolean          @default(true)
+  allowCustomSize Boolean          @default(true)
+  status          ProductStatus    @default(DRAFT)
+  categoryId      String
+  category        Category         @relation(fields: [categoryId], references: [id])
+  variants        ProductVariant[]
+  images          ProductImage[]
+  inquiryItems    InquiryItem[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([status, categoryId])
+}
+
+model ProductVariant {
+  id           String        @id @default(cuid())
+  productId    String
+  product      Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /// ESP-0001-60x80
+  sku          String        @unique
+  /// en espejos redondos es el diámetro (widthCm = heightCm)
+  widthCm      Int
+  heightCm     Int
+  /// pesos colombianos enteros, IVA incluido
+  price        Int?
+  availability Availability  @default(IN_STOCK)
+  isDefault    Boolean       @default(false)
+  position     Int           @default(0)
+  inquiryItems InquiryItem[]
+
+  @@index([productId])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /// id del recurso en Cloudinary
+  publicId  String
+  url       String
+  alt       String?
+  width     Int
+  height    Int
+  /// 0 = portada
+  position  Int     @default(0)
+
+  @@index([productId])
+}
+
+model Inquiry {
+  id                String        @id @default(cuid())
+  /// K7M2QX — viaja en el mensaje de WhatsApp
+  code              String        @unique
+  type              InquiryType
+  status            InquiryStatus @default(NEW)
+  needsShipping     Boolean       @default(false)
+  needsInstallation Boolean       @default(false)
+  /// ciudad indicada por el cliente
+  city              String?
+  /// landing, catalogo, detalle, utm_*
+  source            String?
+  /// datos que completa la dueña al atender la consulta
+  customerName      String?
+  customerPhone     String?
+  notes             String?
+  items             InquiryItem[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([status, createdAt])
+  @@index([type, createdAt])
+}
+
+/// Guarda un snapshot del producto: el historial no cambia si se edita o borra.
+model InquiryItem {
+  id            String          @id @default(cuid())
+  inquiryId     String
+  inquiry       Inquiry         @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  productId     String?
+  product       Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variantId     String?
+  variant       ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  /// "A-LA-MEDIDA" en consultas CUSTOM
+  reference     String
+  productName   String
+  widthCm       Int?
+  heightCm      Int?
+  isCustomSize  Boolean         @default(false)
+  customShape   MirrorShape?
+  /// marco y acabado elegidos (a la medida)
+  frameDetails  String?
+  hasLed        Boolean?
+  quantity      Int             @default(1)
+  /// COP
+  priceSnapshot Int?
+  notes         String?
+
+  @@index([inquiryId])
+  @@index([productId])
+}
+
+/// Fila única (id = 1) con la configuración editable desde el admin.
+model SiteSettings {
+  id                 Int      @id @default(1)
+  businessName       String
+  logoUrl            String?
+  /// 57 + 10 dígitos, sin "+" ni espacios (ej. 573001234567)
+  whatsappNumber     String
+  messageTemplate    String?
+  currencyCode       String   @default("COP")
+  locale             String   @default("es-CO")
+  referencePrefix    String   @default("ESP")
+  /// último número de referencia usado; se incrementa en una transacción
+  referenceCounter   Int      @default(0)
+  shippingInfo       String?
+  installationInfo   String?
+  /// ciudades o zonas donde se envía e instala
+  coverageAreas      String[]
+  /// límites para espejos a la medida
+  customMinCm        Int      @default(20)
+  customMaxCm        Int      @default(250)
+  /// marcos y acabados ofrecidos a la medida
+  customFrameOptions String[]
+  /// política de tratamiento de datos (Ley 1581 de 2012)
+  privacyPolicy      String?
+  instagramUrl       String?
+  facebookUrl        String?
+  tiktokUrl          String?
+  address            String?
+  openingHours       String?
+  updatedAt          DateTime @updatedAt
+}
+
+// User, Session, Account y Verification se agregan en el Sprint 1 con el CLI de Better Auth.

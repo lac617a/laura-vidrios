@@ -1,0 +1,6 @@
+# LF en todo el repo (Prettier usa LF; evita diffs por CRLF en Windows)
+* text=auto eol=lf
+*.ico binary
+*.png binary
+*.jpg binary
+*.webp binary

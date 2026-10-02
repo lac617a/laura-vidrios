@@ -1,0 +1,21 @@
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
+
+# Proyecto
+
+Catálogo de espejos (Colombia, COP). Alcance en `PRD.md`, plan en `ROADMAP.md`: actualiza el estado del sprint en ROADMAP al terminar tareas.
+
+- Interfaz y contenido en español (`es-CO`); código, nombres de modelos y variables en inglés.
+- Prisma **7.10** fijado (no subir a 8 sin decidirlo). Cliente generado en `src/generated/prisma` (`import { … } from "@/generated/prisma/client"`); se regenera en `postinstall`.
+- Usa `@/lib/prisma` en código de la app (es `server-only`). Los scripts y el seed crean su propio cliente.
+- `cacheComponents: true`: lecturas de BD por request van con `await connection()` dentro de `<Suspense>`, o se cachean con `"use cache"` + `cacheTag`.
+- Base de datos: **nunca** ejecutes `migrate dev`, `migrate reset`, `db push` ni el seed contra Neon. Solo `pnpm db:deploy` en Vercel.
+- Precios en COP como enteros (IVA incluido). Medidas en centímetros enteros.
+- Antes de terminar: `pnpm format:check && pnpm lint && pnpm typecheck && pnpm build`.
