@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
-import type { ActionResult } from "@/lib/action-result";
+import type { ActionFailure } from "@/lib/action-result";
 import { auth } from "@/lib/auth";
 
 // Data Access Layer: único lugar donde se lee la sesión.
@@ -35,15 +35,13 @@ export async function requireAdmin(): Promise<AdminUser> {
   return user;
 }
 
-type ActionError = Extract<ActionResult, { ok: false }>;
-
 /**
  * Para Server Actions: devuelve el usuario, o un error 401/403 que la acción retorna tal cual.
  * Las acciones nunca confían en la UI: siempre verifican aquí.
  */
 export async function authorizeAction(
   roles: Role[] = ["OWNER", "EDITOR"],
-): Promise<{ ok: true; user: AdminUser } | ActionError> {
+): Promise<{ ok: true; user: AdminUser } | ActionFailure> {
   const user = await getCurrentUser();
   if (!user) return { ok: false, status: 401, error: "Tu sesión expiró. Vuelve a iniciar sesión." };
   if (!roles.includes(user.role)) {

@@ -2,9 +2,8 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 
+import { SETTINGS_TAG } from "@/lib/cache-tags";
 import { prisma } from "@/lib/prisma";
-
-export const SETTINGS_TAG = "settings";
 
 const settingsSelect = {
   businessName: true,

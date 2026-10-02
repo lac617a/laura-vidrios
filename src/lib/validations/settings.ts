@@ -1,11 +1,10 @@
 import { z } from "zod";
 
+import { nullIfEmpty, optionalText as text } from "@/lib/validations/common";
 import { normalizeWhatsappNumber } from "@/lib/whatsapp";
 
 // Esquema compartido por el formulario (cliente) y la Server Action (servidor).
 // Las listas se editan como texto, una opción por línea.
-
-const text = (max: number) => z.string().trim().max(max, `Máximo ${max} caracteres.`);
 
 const optionalUrl = z
   .string()
@@ -66,8 +65,6 @@ export function parseList(value: string): string[] {
     .filter(Boolean);
   return [...new Set(items)];
 }
-
-const nullIfEmpty = (value: string) => (value === "" ? null : value);
 
 /** Valores del formulario → datos para guardar en SiteSettings. */
 export function toSettingsData(values: SettingsFormValues) {

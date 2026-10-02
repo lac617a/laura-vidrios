@@ -285,11 +285,11 @@ Prioridad: **P0** = MVP · **P1** = poco después del lanzamiento · **P2** = fu
 | Autenticación | **Better Auth** (adaptador Prisma) | Email y contraseña, sesiones en BD, `disableSignUp`, rate limit integrado y roles |
 | Imágenes | **Cloudinary** (`next-cloudinary`) | Subida firmada desde el admin, recorte y optimización automática (`f_auto,q_auto`) y CDN. Las imágenes no ocupan espacio en Neon |
 | Formularios | **React Hook Form + Zod** | El mismo esquema valida en el cliente y en el servidor |
-| Tablas del admin | **TanStack Table** (data-table de shadcn) | Búsqueda, filtros, orden y paginación |
+| Tablas del admin | Tabla de shadcn con filtros y paginación **en el servidor** (en la URL) | Suficiente para el tamaño del catálogo; TanStack Table solo si hiciera falta ordenar o filtrar en el cliente |
 | Estado en la URL | **nuqs** | Filtros del catálogo sincronizados con la URL |
 | Gráficas | **Recharts** (charts de shadcn) | Dashboard de consultas |
 | Hosting | **Vercel** | Integración nativa con Next.js e integración con Neon para ramas de preview. Funciones en `iad1` y Neon en `us-east-1` (misma región, buena latencia hacia Colombia) |
-| Calidad | ESLint + Prettier, **Vitest** (unidad) y **Playwright** (flujo de WhatsApp de punta a punta) | |
+| Calidad | ESLint + Prettier, **Vitest** (unidad, en CI) y **Playwright** (flujo de WhatsApp de punta a punta) | |
 | Paquetes | **pnpm** | |
 
 > **¿Por qué no SQLite en local?** Un esquema de Prisma tiene **un solo `provider`**. Usar SQLite en local y Postgres en producción obliga a mantener dos esquemas y dos historiales de migraciones, y además los enums, `Decimal`, la búsqueda por texto y el manejo de mayúsculas y tildes se comportan distinto. Con Postgres en local, lo que funciona en tu PC funciona en Neon. *Alternativas:* Postgres en Docker o una rama `dev` de Neon (sigue separada de producción, pero requiere internet).

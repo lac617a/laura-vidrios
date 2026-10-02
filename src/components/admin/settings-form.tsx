@@ -3,17 +3,20 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ExternalLinkIcon, Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, type ComponentProps, type ReactNode } from "react";
 import { FormProvider, useForm, useFormContext, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
 import { saveSettings } from "@/app/admin/(panel)/configuracion/actions";
+import { TextField as BaseTextField } from "@/components/admin/form-fields";
+import { FormSaveBar, FormSection } from "@/components/admin/form-section";
 import { Button } from "@/components/ui/button";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes";
 import { settingsFormSchema, type SettingsFormValues } from "@/lib/validations/settings";
 import { buildWhatsappUrl, formatWhatsappNumber, normalizeWhatsappNumber } from "@/lib/whatsapp";
+
+const TextField = BaseTextField<SettingsFormValues>;
 
 export function SettingsForm({ defaultValues }: { defaultValues: SettingsFormValues }) {
   const router = useRouter();
@@ -23,13 +26,7 @@ export function SettingsForm({ defaultValues }: { defaultValues: SettingsFormVal
   });
   const { isDirty, isSubmitting } = form.formState;
 
-  // Avisa antes de salir de la página con cambios sin guardar.
-  useEffect(() => {
-    if (!isDirty) return;
-    const onBeforeUnload = (event: BeforeUnloadEvent) => event.preventDefault();
-    window.addEventListener("beforeunload", onBeforeUnload);
-    return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [isDirty]);
+  useUnsavedChangesWarning(isDirty);
 
   async function onSubmit(values: SettingsFormValues) {
     const result = await saveSettings(values);
@@ -53,7 +50,7 @@ export function SettingsForm({ defaultValues }: { defaultValues: SettingsFormVal
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-8">
-        <Section
+        <FormSection
           title="Negocio"
           description="Aparece en el encabezado, el pie de página y los buscadores."
         >
@@ -68,16 +65,16 @@ export function SettingsForm({ defaultValues }: { defaultValues: SettingsFormVal
             label="Horario de atención"
             placeholder="Lunes a sábado, 8:00 a. m. – 6:00 p. m."
           />
-        </Section>
+        </FormSection>
 
-        <Section
+        <FormSection
           title="WhatsApp"
           description="El número al que llegan todas las consultas de la web."
         >
           <WhatsappField />
-        </Section>
+        </FormSection>
 
-        <Section
+        <FormSection
           title="Redes sociales"
           description="Opcionales. Se muestran como enlaces en el pie de página."
         >
@@ -99,9 +96,9 @@ export function SettingsForm({ defaultValues }: { defaultValues: SettingsFormVal
             placeholder="https://tiktok.com/@…"
             type="url"
           />
-        </Section>
+        </FormSection>
 
-        <Section
+        <FormSection
           title="Referencias"
           description="Prefijo de las referencias de producto, por ejemplo ESP-0001."
         >
@@ -111,9 +108,9 @@ export function SettingsForm({ defaultValues }: { defaultValues: SettingsFormVal
             className="max-w-32 uppercase"
             description="Solo afecta a los productos nuevos; las referencias existentes no cambian."
           />
-        </Section>
+        </FormSection>
 
-        <Section
+        <FormSection
           title="Envíos e instalación"
           description="Se muestran en la sección de servicios de la web."
         >
@@ -132,9 +129,9 @@ export function SettingsForm({ defaultValues }: { defaultValues: SettingsFormVal
             placeholder={"Bogotá\nChía\nSoacha"}
             description="Una por línea."
           />
-        </Section>
+        </FormSection>
 
-        <Section
+        <FormSection
           title="Espejos a la medida"
           description="Límites y opciones del formulario «A la medida»."
         >
@@ -160,9 +157,9 @@ export function SettingsForm({ defaultValues }: { defaultValues: SettingsFormVal
             placeholder={"Sin marco\nBiselado\nAluminio negro"}
             description="Una opción por línea."
           />
-        </Section>
+        </FormSection>
 
-        <Section
+        <FormSection
           title="Política de datos"
           description="Texto de la página de tratamiento de datos personales (Ley 1581 de 2012)."
         >
@@ -172,14 +169,11 @@ export function SettingsForm({ defaultValues }: { defaultValues: SettingsFormVal
             multiline
             rows={8}
           />
-        </Section>
+        </FormSection>
 
-        <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur md:-mx-8 md:px-8">
+        <FormSaveBar notice={isDirty ? "Tienes cambios sin guardar." : undefined}>
           {isDirty && (
             <>
-              <span className="mr-auto text-sm text-muted-foreground">
-                Tienes cambios sin guardar.
-              </span>
               <Button
                 type="button"
                 variant="ghost"
@@ -194,69 +188,9 @@ export function SettingsForm({ defaultValues }: { defaultValues: SettingsFormVal
             {isSubmitting && <Loader2Icon className="animate-spin" aria-hidden />}
             Guardar cambios
           </Button>
-        </div>
+        </FormSaveBar>
       </form>
     </FormProvider>
-  );
-}
-
-function Section({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="grid gap-4 border-b pb-8 md:grid-cols-[minmax(0,14rem)_1fr] md:gap-8">
-      <div>
-        <h2 className="font-medium">{title}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-      </div>
-      <FieldGroup>{children}</FieldGroup>
-    </section>
-  );
-}
-
-type TextFieldProps = {
-  name: keyof SettingsFormValues;
-  label: string;
-  description?: string;
-  multiline?: boolean;
-} & Pick<
-  ComponentProps<"input">,
-  "type" | "placeholder" | "inputMode" | "autoComplete" | "className"
-> &
-  Pick<ComponentProps<"textarea">, "rows">;
-
-function TextField({ name, label, description, multiline, rows, type, ...props }: TextFieldProps) {
-  const {
-    register,
-    formState: { errors },
-  } = useFormContext<SettingsFormValues>();
-  const error = errors[name];
-  const id = `settings-${name}`;
-  const field = register(name, { valueAsNumber: type === "number" });
-
-  return (
-    <Field data-invalid={Boolean(error)}>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      {multiline ? (
-        <Textarea
-          id={id}
-          rows={rows}
-          placeholder={props.placeholder}
-          aria-invalid={Boolean(error)}
-          {...field}
-        />
-      ) : (
-        <Input id={id} type={type ?? "text"} aria-invalid={Boolean(error)} {...props} {...field} />
-      )}
-      {description && <FieldDescription>{description}</FieldDescription>}
-      <FieldError errors={[error]} />
-    </Field>
   );
 }
 

@@ -21,4 +21,6 @@ Catálogo de espejos (Colombia, COP). Alcance en `PRD.md`, plan en `ROADMAP.md`:
 - `pnpm build` necesita la BD accesible: `getSettings()` (`"use cache"`) se prerenderiza en el build.
 - Auth: lee la sesión solo con `src/lib/dal.ts` (`requireAdmin()` en páginas, `authorizeAction()` en cada Server Action). Configuración del negocio: solo rol `OWNER`. Tras mutar datos cacheados, llama a `updateTag(<tag>)`.
 - Componentes de `src/components/ui` (shadcn, base-nova/Base UI): usan `render={<Link …/>}` en vez de `asChild`. Nada de `Math.random()` ni `Date.now()` en fallbacks de Suspense (rompe el prerender).
-- Antes de terminar: `pnpm format:check && pnpm lint && pnpm typecheck && pnpm build`.
+- Catálogo del admin: escrituras en `src/lib/catalog-admin.ts` (lanzan `CatalogError` con mensajes para la dueña), lecturas en `src/lib/catalog-admin-queries.ts`, esquemas en `src/lib/validations/`. En la UI, las acciones se ejecutan con `useAdminAction()`.
+- Tests con Vitest junto al código (`*.test.ts`); `server-only` está simulado en `src/test/`.
+- Antes de terminar: `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build`.

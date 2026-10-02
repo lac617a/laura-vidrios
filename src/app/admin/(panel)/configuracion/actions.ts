@@ -4,9 +4,9 @@ import { updateTag } from "next/cache";
 import { z } from "zod";
 
 import type { ActionResult } from "@/lib/action-result";
+import { SETTINGS_TAG } from "@/lib/cache-tags";
 import { authorizeAction } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
-import { SETTINGS_TAG } from "@/lib/settings";
 import { settingsFormSchema, toSettingsData } from "@/lib/validations/settings";
 
 export async function saveSettings(input: unknown): Promise<ActionResult> {

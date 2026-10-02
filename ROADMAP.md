@@ -12,7 +12,7 @@
 |--------|---------|-----------|------|--------|
 | S0 | Fundaciones | Proyecto base, BD local + Neon, deploy y CI | | 🟨 En curso (falta Neon/Vercel/GitHub) |
 | S1 | Acceso y configuración del negocio | Login del admin, nombre y WhatsApp configurables | | ✅ Hecho en local (falta probar en producción) |
-| S2 | Categorías y productos | CRUD de catálogo con variantes de medida y precios COP | | ⬜ Pendiente |
+| S2 | Categorías y productos | CRUD de catálogo con variantes de medida y precios COP | | ✅ Hecho |
 | S3 | Imágenes de producto | Subida a Cloudinary, orden y portada | 🏁 **A** | ⬜ Pendiente |
 | S4 | Catálogo público | `/espejos` con filtros, búsqueda y animaciones | | ⬜ Pendiente |
 | S5 | Detalle de producto | `/espejos/[slug]` con galería, medidas y servicios | | ⬜ Pendiente |
@@ -138,19 +138,19 @@ gantt
 **Depende de:** S1
 
 **Tareas**
-- [ ] **Categorías:** lista con orden arrastrable; crear, editar y eliminar (bloquear la eliminación si tiene productos); slug automático.
-- [ ] **Tabla de productos** (TanStack): búsqueda, filtros por categoría y estado, y paginación.
-- [ ] **Formulario de producto** (React Hook Form + Zod compartido): datos, categoría, forma, marco, color, estilo, LED, "mostrar precio" y "permitir otra medida".
-- [ ] **Variantes en filas editables:** ancho y alto (o diámetro si es redondo), precio COP con máscara `$ 850.000`, disponibilidad y variante por defecto.
-- [ ] Referencia automática `PREFIJO-0001` con contador transaccional; SKU de variante `REF-60x80`.
-- [ ] Slug automático desde el nombre: único y editable. `searchText` normalizado (sin tildes, minúsculas).
-- [ ] Acciones rápidas: publicar o despublicar, destacar, duplicar y archivar (con confirmación).
-- [ ] Regla: no se publica sin al menos una variante.
-- [ ] Utilidades `formatCOP()` y `formatMedida()` (`60 × 80 cm`, `Ø 60 cm`) con tests en Vitest.
+- [x] **Categorías:** orden con botones subir/bajar (en vez de arrastrar: funciona igual en el móvil y con teclado); crear y editar en un diálogo; ocultar; eliminar con confirmación (bloqueado si tiene productos); slug automático.
+- [x] **Listado de productos:** búsqueda (sin importar tildes), filtro por categoría, pestañas por estado con contadores y paginación de 20, todo en la URL. Tabla en desktop y tarjetas en móvil. *Filtrado en el servidor, sin TanStack Table: no hizo falta.*
+- [x] **Formulario de producto** (React Hook Form + Zod compartido): nombre, categoría, forma (chips), descripción, marco con sugerencias, color, estilo, LED, "mostrar precios", "aceptar otra medida", estado, destacado, referencia y enlace. Avisa de cambios sin guardar.
+- [x] **Variantes en filas editables:** ancho y alto (diámetro en redondos, lado en cuadrados), precio con máscara `850.000`, disponibilidad y estrella de medida principal. Detecta medidas repetidas.
+- [x] Referencia automática `PREFIJO-0001` con contador transaccional (sin choques entre altas simultáneas); SKU `REF-60x80`. Al editar se conservan los ids de las variantes, aunque se intercambien medidas.
+- [x] Slug automático, único y editable. `searchText` normalizado.
+- [x] Acciones rápidas: publicar o pasar a borrador, destacar, duplicar (como borrador con nueva referencia), archivar (con confirmación) y restaurar.
+- [x] Regla: no se publica sin al menos una medida (formulario y acción rápida).
+- [x] Vitest: 48 tests (formatos COP y medidas, WhatsApp, slugs, validaciones de producto y configuración, y `authorizeAction` 401/403). Corren en CI.
 
 **Demo / terminado cuando**
-- Desde el móvil se crea un producto con 3 medidas en menos de 3 minutos.
-- Duplicar un producto genera una nueva referencia consecutiva.
+- [x] Se crea un producto con 3 medidas y precios (probado en el navegador; la vista móvil no tiene scroll horizontal).
+- [x] Duplicar un producto genera una nueva referencia consecutiva (ESP-0014 → ESP-0015).
 
 ---
 

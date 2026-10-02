@@ -1,10 +1,12 @@
 // Resultado estándar de las Server Actions del admin (seguro para importar en el cliente).
 
-export type ActionResult =
-  | { ok: true }
-  | {
-      ok: false;
-      status: 400 | 401 | 403 | 500;
-      error: string;
-      fieldErrors?: Record<string, string[] | undefined>;
-    };
+export type ActionFailure = {
+  ok: false;
+  status: 400 | 401 | 403 | 404 | 409 | 500;
+  error: string;
+  fieldErrors?: Record<string, string[] | undefined>;
+};
+
+/** `ActionResult` sin datos · `ActionResult<{ id: string }>` con datos. */
+export type ActionResult<T = never> =
+  ([T] extends [never] ? { ok: true } : { ok: true; data: T }) | ActionFailure;
