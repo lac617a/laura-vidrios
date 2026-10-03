@@ -13,7 +13,7 @@
 | S0 | Fundaciones | Proyecto base, BD local + Neon, deploy y CI | | 🟨 En curso (falta Neon/Vercel/GitHub) |
 | S1 | Acceso y configuración del negocio | Login del admin, nombre y WhatsApp configurables | | ✅ Hecho en local (falta probar en producción) |
 | S2 | Categorías y productos | CRUD de catálogo con variantes de medida y precios COP | | ✅ Hecho |
-| S3 | Imágenes de producto | Subida a Cloudinary, orden y portada | 🏁 **A** | ⬜ Pendiente |
+| S3 | Imágenes de producto | Subida a Cloudinary, orden y portada | 🏁 **A** | ✅ Hecho (Hito A espera el deploy) |
 | S4 | Catálogo público | `/espejos` con filtros, búsqueda y animaciones | | ⬜ Pendiente |
 | S5 | Detalle de producto | `/espejos/[slug]` con galería, medidas y servicios | | ⬜ Pendiente |
 | S6 | Consulta por WhatsApp | Mensaje + registro de consulta con código | 🏁 **B** | ⬜ Pendiente |
@@ -161,18 +161,19 @@ gantt
 **Depende de:** S2
 
 **Tareas**
-- [ ] Cuenta de Cloudinary con **carpetas por entorno** (`dev/`, `preview/`, `prod/`), igual que la BD.
-- [ ] Endpoint que firma las subidas (las credenciales nunca llegan al navegador).
-- [ ] Componente de subida múltiple: arrastrar y soltar, cámara del móvil y barra de progreso.
-- [ ] Reordenar (la primera es la portada), editar `alt` y eliminar (también en Cloudinary).
-- [ ] Presets de transformación: tarjeta 4:5, detalle, miniatura y OG 1200 × 630.
-- [ ] Subida del logo del negocio en configuración.
-- [ ] Regla: no se publica sin al menos una imagen.
-- [ ] Guía de fotos visible en el formulario (fondo neutro, luz natural, frontal + detalle + ambientada).
+- [x] Cloudinary con **carpetas por entorno** (`catalogo-espejos/dev|preview|prod/…`), igual que la BD. Sin SDK: firma y borrado con la API REST.
+- [x] Server Action que firma las subidas (el secret nunca llega al navegador) y verifica la firma de la respuesta de Cloudinary antes de guardar.
+- [x] Subida múltiple: elegir o arrastrar varias fotos, cámara del móvil, progreso por foto. Las fotos grandes del celular se reducen a 2400 px antes de subir; Cloudinary también limita a 2400 px.
+- [x] Reordenar con flechas, "Usar como portada", editar la descripción (`alt`) y eliminar (también en Cloudinary, salvo que una copia duplicada comparta el archivo). Máximo 12 por producto.
+- [x] Presets: tarjeta 4:5, detalle, miniatura y OG 1200 × 630. `CloudinaryImage` (next/image con loader de Cloudinary: `f_auto`, `q_auto`).
+- [x] Logo del negocio (configuración) y **imagen de categoría** (adelantado de S8). Al reemplazarlos o quitarlos se borra el archivo anterior.
+- [x] Regla: no se publica sin al menos una foto (formulario, acción rápida y servidor). No se puede borrar la única foto de un producto publicado.
+- [x] Guía de fotos visible en la sección de fotos. Miniaturas en el listado de productos y de categorías.
+- [x] Duplicar un producto copia también sus fotos.
 
 **Demo / terminado cuando**
-- Un producto publicado muestra sus fotos en AVIF o WebP con el tamaño correcto.
-- 🏁 **Hito A:** la dueña empieza a cargar su catálogo real en producción.
+- [x] Probado con la cuenta real de Cloudinary: subir 2 fotos, cambiar la portada, borrar (el archivo desaparece de Cloudinary), y subir y quitar el logo y una imagen de categoría. Se sirven con `f_auto` (AVIF/WebP según el navegador).
+- [ ] 🏁 **Hito A:** la dueña empieza a cargar su catálogo real en producción *(falta el deploy de S0)*.
 
 ---
 

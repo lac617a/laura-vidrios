@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isOwnCloudinaryUrl } from "@/lib/cloudinary";
+
 /** Texto opcional recortado, con máximo de caracteres. */
 export const optionalText = (max: number) =>
   z.string().trim().max(max, `Máximo ${max} caracteres.`);
@@ -15,3 +17,11 @@ export const optionalSlug = z
   });
 
 export const nullIfEmpty = (value: string) => (value === "" ? null : value);
+
+/** Imagen opcional subida desde el panel (vacío = sin imagen). */
+export const optionalImageUrl = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || isOwnCloudinaryUrl(value), {
+    message: "Sube la imagen desde el panel.",
+  });

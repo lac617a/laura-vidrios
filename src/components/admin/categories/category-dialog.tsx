@@ -7,6 +7,8 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
 import { saveCategory } from "@/app/admin/(panel)/categorias/actions";
+import { showInvalid } from "@/components/admin/form-fields";
+import { SingleImageField } from "@/components/admin/images/single-image-field";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,10 +36,12 @@ import { categoryFormSchema, type CategoryFormValues } from "@/lib/validations/c
 export function CategoryDialog({
   open,
   category,
+  imagesConfigured,
   onOpenChange,
 }: {
   open: boolean;
   category: AdminCategoryRow | null;
+  imagesConfigured: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
@@ -47,6 +51,7 @@ export function CategoryDialog({
       name: category?.name ?? "",
       slug: category?.slug ?? "",
       description: category?.description ?? "",
+      imageUrl: category?.imageUrl ?? "",
       isActive: category?.isActive ?? true,
     },
   });
@@ -78,7 +83,7 @@ export function CategoryDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
+        <form onSubmit={form.handleSubmit(onSubmit, showInvalid)} noValidate>
           <DialogHeader>
             <DialogTitle>{category ? "Editar categoría" : "Nueva categoría"}</DialogTitle>
             <DialogDescription>Los clientes la verán como filtro en el catálogo.</DialogDescription>
@@ -113,6 +118,25 @@ export function CategoryDialog({
               <Textarea id="category-description" rows={3} {...register("description")} />
               <FieldError errors={[errors.description]} />
             </Field>
+            <Controller
+              control={control}
+              name="imageUrl"
+              render={({ field }) => (
+                <Field>
+                  <FieldLabel htmlFor="category-image">Imagen (opcional)</FieldLabel>
+                  <SingleImageField
+                    id="category-image"
+                    value={field.value}
+                    onChange={field.onChange}
+                    target={{ kind: "category" }}
+                    configured={imagesConfigured}
+                    alt={name || "Categoría"}
+                    previewClassName="aspect-4/5 h-28 w-auto"
+                  />
+                  <FieldDescription>Se muestra en la página de inicio.</FieldDescription>
+                </Field>
+              )}
+            />
             <Controller
               control={control}
               name="isActive"

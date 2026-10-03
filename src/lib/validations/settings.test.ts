@@ -9,6 +9,7 @@ import {
 
 const valid: SettingsFormValues = {
   businessName: "Espejos Demo",
+  logoUrl: "",
   address: "",
   openingHours: "",
   instagramUrl: "",

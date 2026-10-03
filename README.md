@@ -71,6 +71,12 @@ El panel está en <http://localhost:3000/admin>. El seed crea dos usuarios **sol
 | `pnpm db:studio`                       | Prisma Studio para ver la BD                                |
 | `pnpm admin:create`                    | Crea o actualiza un usuario del panel (pide la contraseña)  |
 
+## Imágenes (Cloudinary)
+
+Pon `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` y `CLOUDINARY_API_SECRET` en `.env` (en Vercel, en sus variables). Sin ellas, el panel funciona pero no permite subir fotos.
+
+Los archivos se separan por entorno: `catalogo-espejos/dev/` (local), `catalogo-espejos/preview/` (previews) y `catalogo-espejos/prod/` (producción).
+
 ## Entornos y datos
 
 | Entorno    | Base de datos                         | Migraciones                       |

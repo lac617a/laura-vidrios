@@ -311,7 +311,8 @@ async function main() {
     create: {
       id: 1,
       businessName: "Espejos Demo",
-      whatsappNumber: process.env.SEED_WHATSAPP_NUMBER ?? "570000000000",
+      // Número ficticio con formato válido (57 + 3xx…): la configuración se puede guardar tal cual.
+      whatsappNumber: process.env.SEED_WHATSAPP_NUMBER ?? "573000000000",
       referencePrefix: REFERENCE_PREFIX,
       referenceCounter: products.length,
       shippingInfo:

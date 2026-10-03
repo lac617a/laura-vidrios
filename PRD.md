@@ -283,7 +283,7 @@ Prioridad: **P0** = MVP · **P1** = poco después del lanzamiento · **P2** = fu
 | BD producción | **Neon** (Postgres serverless) | Gratis al inicio, backups, ramas para previews y *scale-to-zero* |
 | Driver | `@prisma/adapter-pg` en ambos entornos | Un solo camino de código. Neon acepta conexiones TCP estándar mediante su pooler |
 | Autenticación | **Better Auth** (adaptador Prisma) | Email y contraseña, sesiones en BD, `disableSignUp`, rate limit integrado y roles |
-| Imágenes | **Cloudinary** (`next-cloudinary`) | Subida firmada desde el admin, recorte y optimización automática (`f_auto,q_auto`) y CDN. Las imágenes no ocupan espacio en Neon |
+| Imágenes | **Cloudinary** (API REST, sin SDK) | Subida firmada directa desde el navegador, verificación de la firma de respuesta, recorte y optimización automática (`f_auto,q_auto`) con un loader de `next/image`, y CDN. Las imágenes no ocupan espacio en Neon ni en el optimizador de Vercel |
 | Formularios | **React Hook Form + Zod** | El mismo esquema valida en el cliente y en el servidor |
 | Tablas del admin | Tabla de shadcn con filtros y paginación **en el servidor** (en la URL) | Suficiente para el tamaño del catálogo; TanStack Table solo si hiciera falta ordenar o filtrar en el cliente |
 | Estado en la URL | **nuqs** | Filtros del catálogo sincronizados con la URL |

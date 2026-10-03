@@ -1,8 +1,9 @@
-import { StarIcon } from "lucide-react";
+import { ImageIcon, StarIcon } from "lucide-react";
 import Link from "next/link";
 
 import { ProductRowActions } from "@/components/admin/products/product-row-actions";
 import { ProductStatusBadge } from "@/components/admin/status-badge";
+import { CloudinaryImage } from "@/components/cloudinary-image";
 import {
   Table,
   TableBody,
@@ -31,6 +32,32 @@ function FeaturedStar({ show }: { show: boolean }) {
   );
 }
 
+function ProductThumb({ product, size }: { product: AdminProductRow; size: number }) {
+  const cover = product.images[0];
+  if (!cover) {
+    return (
+      <div
+        className="flex shrink-0 items-center justify-center rounded-md border border-dashed bg-muted text-muted-foreground"
+        style={{ width: size, height: size }}
+        title="Sin fotos"
+      >
+        <ImageIcon className="size-4" aria-label="Sin fotos" />
+      </div>
+    );
+  }
+  return (
+    <CloudinaryImage
+      src={cover.publicId}
+      preset="thumb"
+      alt=""
+      width={size}
+      height={size}
+      className="shrink-0 rounded-md border object-cover"
+      style={{ width: size, height: size }}
+    />
+  );
+}
+
 /** Tabla en desktop y tarjetas en móvil. */
 export function ProductList({ products }: { products: AdminProductRow[] }) {
   return (
@@ -40,6 +67,7 @@ export function ProductList({ products }: { products: AdminProductRow[] }) {
           const { sizes, price } = summary(product);
           return (
             <li key={product.id} className="flex items-start gap-3 p-3">
+              <ProductThumb product={product} size={56} />
               <div className="min-w-0 flex-1">
                 <Link
                   href={`/admin/productos/${product.id}`}
@@ -67,6 +95,9 @@ export function ProductList({ products }: { products: AdminProductRow[] }) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-14">
+                <span className="sr-only">Foto</span>
+              </TableHead>
               <TableHead>Producto</TableHead>
               <TableHead>Categoría</TableHead>
               <TableHead>Medidas</TableHead>
@@ -82,6 +113,9 @@ export function ProductList({ products }: { products: AdminProductRow[] }) {
               const { sizes, price } = summary(product);
               return (
                 <TableRow key={product.id}>
+                  <TableCell>
+                    <ProductThumb product={product} size={40} />
+                  </TableCell>
                   <TableCell className="max-w-72">
                     <Link
                       href={`/admin/productos/${product.id}`}

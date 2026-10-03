@@ -8,7 +8,12 @@ import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
 import { createProduct, updateProduct } from "@/app/admin/(panel)/productos/actions";
-import { SwitchField, TextField as BaseTextField, fieldId } from "@/components/admin/form-fields";
+import {
+  SwitchField,
+  TextField as BaseTextField,
+  fieldId,
+  showInvalid,
+} from "@/components/admin/form-fields";
 import { FormSaveBar, FormSection } from "@/components/admin/form-section";
 import { VariantsEditor } from "@/components/admin/products/variants-editor";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -28,6 +33,7 @@ import { SHAPE_LABELS, SHAPES } from "@/lib/catalog";
 import type { ProductStatus } from "@/generated/prisma/enums";
 import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes";
 import { slugify } from "@/lib/text";
+import { cn } from "@/lib/utils";
 import { productFormSchema, type ProductFormValues } from "@/lib/validations/product";
 
 const TextField = BaseTextField<ProductFormValues>;
@@ -38,6 +44,7 @@ type CategoryOption = { id: string; name: string; isActive: boolean };
 export function ProductForm({
   productId,
   currentStatus,
+  imageCount = 0,
   defaultValues,
   categories,
   frameSuggestions,
@@ -46,6 +53,8 @@ export function ProductForm({
   /** Ausente al crear. */
   productId?: string;
   currentStatus?: ProductStatus;
+  /** Fotos actuales: sin fotos no se puede publicar. */
+  imageCount?: number;
   defaultValues: ProductFormValues;
   categories: CategoryOption[];
   frameSuggestions: string[];
@@ -63,6 +72,7 @@ export function ProductForm({
   const isEditing = Boolean(productId);
   const archived = currentStatus === "ARCHIVED";
   const slugPreview = slug || slugify(name ?? "");
+  const canPublish = imageCount > 0 || currentStatus === "PUBLISHED";
 
   useUnsavedChangesWarning(isDirty && !isSubmitting);
 
@@ -101,7 +111,7 @@ export function ProductForm({
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit, showInvalid)} noValidate className="space-y-8">
         {archived && (
           <Alert>
             <ArchiveIcon aria-hidden />
@@ -248,12 +258,16 @@ export function ProductForm({
                         </span>
                       </span>
                     </label>
-                    <label className="flex items-start gap-3">
-                      <RadioGroupItem value="PUBLISHED" className="mt-0.5" />
+                    <label className={cn("flex items-start gap-3", !canPublish && "opacity-60")}>
+                      <RadioGroupItem value="PUBLISHED" className="mt-0.5" disabled={!canPublish} />
                       <span>
                         <span className="block text-sm font-medium">Publicado</span>
                         <span className="block text-sm text-muted-foreground">
-                          Visible en el catálogo.
+                          {canPublish
+                            ? "Visible en el catálogo."
+                            : isEditing
+                              ? "Sube al menos una foto para poder publicarlo."
+                              : "Podrás publicarlo después de crearlo y subir sus fotos."}
                         </span>
                       </span>
                     </label>

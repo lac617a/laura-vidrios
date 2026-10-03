@@ -53,6 +53,7 @@ export async function listAdminProducts(params: ProductListParams) {
           orderBy: { position: "asc" },
           select: { widthCm: true, heightCm: true, price: true },
         },
+        images: { orderBy: { position: "asc" }, take: 1, select: { publicId: true } },
       },
     }),
     prisma.product.groupBy({ by: ["status"], where: base, _count: { _all: true } }),
@@ -86,6 +87,7 @@ export async function listCategoriesWithCounts() {
       name: true,
       slug: true,
       description: true,
+      imageUrl: true,
       isActive: true,
       _count: { select: { products: true } },
     },
@@ -122,7 +124,10 @@ export async function getProductFormOptions() {
 export async function getProductForEdit(id: string) {
   const product = await prisma.product.findUnique({
     where: { id },
-    include: { variants: { orderBy: { position: "asc" } } },
+    include: {
+      variants: { orderBy: { position: "asc" } },
+      images: { orderBy: { position: "asc" }, select: { id: true, publicId: true, alt: true } },
+    },
   });
   if (!product) return null;
 
@@ -157,6 +162,7 @@ export async function getProductForEdit(id: string) {
     slug: product.slug,
     reference: product.reference,
     updatedAt: product.updatedAt,
+    images: product.images,
     values,
   };
 }

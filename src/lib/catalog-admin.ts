@@ -2,6 +2,8 @@ import "server-only";
 
 import type { Prisma } from "@/generated/prisma/client";
 import type { ActionFailure } from "@/lib/action-result";
+import { publicIdFromUrl } from "@/lib/cloudinary";
+import { destroyImage } from "@/lib/cloudinary-server";
 import { formatReference, variantSku } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_SETTINGS } from "@/lib/settings";
@@ -96,6 +98,8 @@ export async function previewNextReference(): Promise<string> {
 
 // ── Productos ───────────────────────────────────────────────
 
+const NO_PHOTO_MESSAGE = "Sube al menos una foto antes de publicar.";
+
 function productData(values: ProductFormValues, reference: string) {
   return {
     name: values.name,
@@ -132,6 +136,8 @@ async function assertReferenceFree(tx: Tx, reference: string, excludeId?: string
 }
 
 export async function createProduct(values: ProductFormValues) {
+  // Las fotos se suben después de crear el producto: nace siempre sin fotos.
+  if (values.status === "PUBLISHED") throw new CatalogError(NO_PHOTO_MESSAGE);
   return prisma.$transaction(async (tx) => {
     await assertCategoryExists(tx, values.categoryId);
     let reference = values.reference;
@@ -166,7 +172,12 @@ export async function updateProduct(id: string, values: ProductFormValues) {
   return prisma.$transaction(async (tx) => {
     const current = await tx.product.findUnique({
       where: { id },
-      select: { reference: true, status: true, variants: { select: { id: true } } },
+      select: {
+        reference: true,
+        status: true,
+        variants: { select: { id: true } },
+        _count: { select: { images: true } },
+      },
     });
     if (!current) throw new CatalogError("El producto no existe.");
     await assertCategoryExists(tx, values.categoryId);
@@ -177,6 +188,9 @@ export async function updateProduct(id: string, values: ProductFormValues) {
 
     // Un producto archivado se mantiene archivado al editarlo; se restaura con su acción.
     const status = current.status === "ARCHIVED" ? "ARCHIVED" : values.status;
+    if (status === "PUBLISHED" && current.status !== "PUBLISHED" && current._count.images === 0) {
+      throw new CatalogError(NO_PHOTO_MESSAGE);
+    }
 
     await tx.product.update({
       where: { id },
@@ -222,11 +236,14 @@ export async function updateProduct(id: string, values: ProductFormValues) {
 export async function setProductStatus(id: string, status: "DRAFT" | "PUBLISHED" | "ARCHIVED") {
   const product = await prisma.product.findUnique({
     where: { id },
-    select: { _count: { select: { variants: true } } },
+    select: { _count: { select: { variants: true, images: true } } },
   });
   if (!product) throw new CatalogError("El producto no existe.");
   if (status === "PUBLISHED" && product._count.variants === 0) {
     throw new CatalogError("Agrega al menos una medida antes de publicar.");
+  }
+  if (status === "PUBLISHED" && product._count.images === 0) {
+    throw new CatalogError(NO_PHOTO_MESSAGE);
   }
   await prisma.product.update({
     where: { id },
@@ -238,12 +255,15 @@ export async function setProductFeatured(id: string, isFeatured: boolean) {
   await prisma.product.update({ where: { id }, data: { isFeatured } });
 }
 
-/** Copia como borrador con nueva referencia; las imágenes se copiarán desde el Sprint 3. */
+/** Copia como borrador con nueva referencia. Las fotos se copian compartiendo los archivos. */
 export async function duplicateProduct(id: string) {
   return prisma.$transaction(async (tx) => {
     const source = await tx.product.findUnique({
       where: { id },
-      include: { variants: { orderBy: { position: "asc" } } },
+      include: {
+        variants: { orderBy: { position: "asc" } },
+        images: { orderBy: { position: "asc" } },
+      },
     });
     if (!source) throw new CatalogError("El producto no existe.");
 
@@ -279,6 +299,16 @@ export async function duplicateProduct(id: string) {
             position: variant.position,
           })),
         },
+        images: {
+          create: source.images.map((image) => ({
+            publicId: image.publicId,
+            url: image.url,
+            alt: image.alt,
+            width: image.width,
+            height: image.height,
+            position: image.position,
+          })),
+        },
       },
       select: { id: true, reference: true },
     });
@@ -286,6 +316,12 @@ export async function duplicateProduct(id: string) {
 }
 
 // ── Categorías ──────────────────────────────────────────────
+
+/** Borra de Cloudinary una imagen guardada por URL (logo o categoría reemplazados). */
+export async function destroyImageAtUrl(url: string) {
+  const publicId = publicIdFromUrl(url);
+  if (publicId) await destroyImage(publicId);
+}
 
 export async function createCategory(values: CategoryFormValues) {
   return prisma.$transaction(async (tx) => {
@@ -296,6 +332,7 @@ export async function createCategory(values: CategoryFormValues) {
         name: values.name,
         slug,
         description: nullIfEmpty(values.description),
+        imageUrl: nullIfEmpty(values.imageUrl),
         isActive: values.isActive,
         position: (last._max.position ?? -1) + 1,
       },
@@ -305,8 +342,8 @@ export async function createCategory(values: CategoryFormValues) {
 }
 
 export async function updateCategory(id: string, values: CategoryFormValues) {
-  return prisma.$transaction(async (tx) => {
-    const exists = await tx.category.findUnique({ where: { id }, select: { id: true } });
+  const previous = await prisma.$transaction(async (tx) => {
+    const exists = await tx.category.findUnique({ where: { id }, select: { imageUrl: true } });
     if (!exists) throw new CatalogError("La categoría no existe.");
     const slug = await uniqueCategorySlug(tx, values.slug || slugify(values.name), id);
     await tx.category.update({
@@ -315,16 +352,19 @@ export async function updateCategory(id: string, values: CategoryFormValues) {
         name: values.name,
         slug,
         description: nullIfEmpty(values.description),
+        imageUrl: nullIfEmpty(values.imageUrl),
         isActive: values.isActive,
       },
     });
+    return exists.imageUrl;
   });
+  if (previous && previous !== values.imageUrl) await destroyImageAtUrl(previous);
 }
 
 export async function deleteCategory(id: string) {
   const category = await prisma.category.findUnique({
     where: { id },
-    select: { _count: { select: { products: true } } },
+    select: { imageUrl: true, _count: { select: { products: true } } },
   });
   if (!category) throw new CatalogError("La categoría no existe.");
   if (category._count.products > 0) {
@@ -333,6 +373,7 @@ export async function deleteCategory(id: string) {
     );
   }
   await prisma.category.delete({ where: { id } });
+  if (category.imageUrl) await destroyImageAtUrl(category.imageUrl);
 }
 
 /** Sube o baja una categoría una posición (y deja las posiciones consecutivas). */

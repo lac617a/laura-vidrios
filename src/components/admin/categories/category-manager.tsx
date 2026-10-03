@@ -1,10 +1,18 @@
 "use client";
 
-import { ArrowDownIcon, ArrowUpIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  ImageIcon,
+  PencilIcon,
+  PlusIcon,
+  Trash2Icon,
+} from "lucide-react";
 import { useState } from "react";
 
 import { deleteCategory, moveCategory } from "@/app/admin/(panel)/categorias/actions";
 import { CategoryDialog } from "@/components/admin/categories/category-dialog";
+import { CloudinaryImage } from "@/components/cloudinary-image";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +32,13 @@ import type { AdminCategoryRow } from "@/lib/catalog-admin-queries";
 
 type Editing = { mode: "closed" } | { mode: "new" } | { mode: "edit"; category: AdminCategoryRow };
 
-export function CategoryManager({ categories }: { categories: AdminCategoryRow[] }) {
+export function CategoryManager({
+  categories,
+  imagesConfigured,
+}: {
+  categories: AdminCategoryRow[];
+  imagesConfigured: boolean;
+}) {
   const [editing, setEditing] = useState<Editing>({ mode: "closed" });
   const { run, pending } = useAdminAction();
 
@@ -66,6 +80,20 @@ export function CategoryManager({ categories }: { categories: AdminCategoryRow[]
                 </Button>
               </div>
 
+              {category.imageUrl ? (
+                <CloudinaryImage
+                  src={category.imageUrl}
+                  alt=""
+                  width={80}
+                  height={100}
+                  className="h-12 w-10 shrink-0 rounded-md border object-cover"
+                />
+              ) : (
+                <div className="flex h-12 w-10 shrink-0 items-center justify-center rounded-md border border-dashed bg-muted">
+                  <ImageIcon className="size-4 text-muted-foreground" aria-label="Sin imagen" />
+                </div>
+              )}
+
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{category.name}</span>
@@ -102,6 +130,7 @@ export function CategoryManager({ categories }: { categories: AdminCategoryRow[]
         key={editing.mode === "edit" ? editing.category.id : editing.mode}
         open={editing.mode !== "closed"}
         category={editing.mode === "edit" ? editing.category : null}
+        imagesConfigured={imagesConfigured}
         onOpenChange={(open) => !open && setEditing({ mode: "closed" })}
       />
     </>

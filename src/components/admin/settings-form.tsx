@@ -3,12 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ExternalLinkIcon, Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { FormProvider, useForm, useFormContext, useWatch } from "react-hook-form";
+import { Controller, FormProvider, useForm, useFormContext, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
 import { saveSettings } from "@/app/admin/(panel)/configuracion/actions";
-import { TextField as BaseTextField } from "@/components/admin/form-fields";
+import { TextField as BaseTextField, showInvalid } from "@/components/admin/form-fields";
 import { FormSaveBar, FormSection } from "@/components/admin/form-section";
+import { SingleImageField } from "@/components/admin/images/single-image-field";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,13 @@ import { buildWhatsappUrl, formatWhatsappNumber, normalizeWhatsappNumber } from 
 
 const TextField = BaseTextField<SettingsFormValues>;
 
-export function SettingsForm({ defaultValues }: { defaultValues: SettingsFormValues }) {
+export function SettingsForm({
+  defaultValues,
+  imagesConfigured,
+}: {
+  defaultValues: SettingsFormValues;
+  imagesConfigured: boolean;
+}) {
   const router = useRouter();
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsFormSchema),
@@ -49,12 +56,32 @@ export function SettingsForm({ defaultValues }: { defaultValues: SettingsFormVal
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit, showInvalid)} noValidate className="space-y-8">
         <FormSection
           title="Negocio"
           description="Aparece en el encabezado, el pie de página y los buscadores."
         >
           <TextField name="businessName" label="Nombre del negocio" autoComplete="organization" />
+          <Controller
+            control={form.control}
+            name="logoUrl"
+            render={({ field }) => (
+              <Field>
+                <FieldLabel htmlFor="settings-logo">Logo (opcional)</FieldLabel>
+                <SingleImageField
+                  id="settings-logo"
+                  value={field.value}
+                  onChange={field.onChange}
+                  target={{ kind: "logo" }}
+                  configured={imagesConfigured}
+                  alt="Logo del negocio"
+                />
+                <FieldDescription>
+                  PNG con fondo transparente o JPG. Se muestra junto al nombre en la web.
+                </FieldDescription>
+              </Field>
+            )}
+          />
           <TextField
             name="address"
             label="Dirección"

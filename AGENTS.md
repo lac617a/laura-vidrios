@@ -22,5 +22,6 @@ Catálogo de espejos (Colombia, COP). Alcance en `PRD.md`, plan en `ROADMAP.md`:
 - Auth: lee la sesión solo con `src/lib/dal.ts` (`requireAdmin()` en páginas, `authorizeAction()` en cada Server Action). Configuración del negocio: solo rol `OWNER`. Tras mutar datos cacheados, llama a `updateTag(<tag>)`.
 - Componentes de `src/components/ui` (shadcn, base-nova/Base UI): usan `render={<Link …/>}` en vez de `asChild`. Nada de `Math.random()` ni `Date.now()` en fallbacks de Suspense (rompe el prerender).
 - Catálogo del admin: escrituras en `src/lib/catalog-admin.ts` (lanzan `CatalogError` con mensajes para la dueña), lecturas en `src/lib/catalog-admin-queries.ts`, esquemas en `src/lib/validations/`. En la UI, las acciones se ejecutan con `useAdminAction()`.
+- Imágenes: Cloudinary vía `src/lib/cloudinary.ts` (URLs, cliente) y `src/lib/cloudinary-server.ts` (firma y borrado). Muéstralas con `<CloudinaryImage>` (nunca el optimizador de Next). Las subidas pasan por `signImageUpload` → navegador → verificación de firma (`src/app/admin/(panel)/image-actions.ts`). Carpetas separadas por entorno.
 - Tests con Vitest junto al código (`*.test.ts`); `server-only` está simulado en `src/test/`.
 - Antes de terminar: `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build`.

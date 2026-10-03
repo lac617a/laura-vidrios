@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/admin/page-header";
 import { SettingsForm } from "@/components/admin/settings-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getCloudinaryConfig } from "@/lib/cloudinary-server";
 import { requireAdmin } from "@/lib/dal";
 import { getSettingsFresh, type SiteSettings } from "@/lib/settings";
 import type { SettingsFormValues } from "@/lib/validations/settings";
@@ -41,12 +42,18 @@ async function SettingsLoader() {
   }
 
   const settings = await getSettingsFresh();
-  return <SettingsForm defaultValues={toFormValues(settings)} />;
+  return (
+    <SettingsForm
+      defaultValues={toFormValues(settings)}
+      imagesConfigured={getCloudinaryConfig() !== null}
+    />
+  );
 }
 
 function toFormValues(settings: SiteSettings): SettingsFormValues {
   return {
     businessName: settings.businessName,
+    logoUrl: settings.logoUrl ?? "",
     address: settings.address ?? "",
     openingHours: settings.openingHours ?? "",
     instagramUrl: settings.instagramUrl ?? "",

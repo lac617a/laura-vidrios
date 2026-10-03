@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { nullIfEmpty, optionalText as text } from "@/lib/validations/common";
+import { nullIfEmpty, optionalImageUrl, optionalText as text } from "@/lib/validations/common";
 import { normalizeWhatsappNumber } from "@/lib/whatsapp";
 
 // Esquema compartido por el formulario (cliente) y la Server Action (servidor).
@@ -26,6 +26,7 @@ export const settingsFormSchema = z
       .trim()
       .min(2, "Escribe el nombre del negocio.")
       .max(80, "Máximo 80 caracteres."),
+    logoUrl: optionalImageUrl,
     address: text(200),
     openingHours: text(200),
     instagramUrl: optionalUrl,
@@ -70,6 +71,7 @@ export function parseList(value: string): string[] {
 export function toSettingsData(values: SettingsFormValues) {
   return {
     businessName: values.businessName,
+    logoUrl: nullIfEmpty(values.logoUrl),
     address: nullIfEmpty(values.address),
     openingHours: nullIfEmpty(values.openingHours),
     instagramUrl: nullIfEmpty(values.instagramUrl),

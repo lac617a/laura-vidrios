@@ -2,6 +2,7 @@
 
 import type { ComponentProps } from "react";
 import { Controller, useFormContext, type FieldValues, type Path } from "react-hook-form";
+import { toast } from "sonner";
 
 import {
   Field,
@@ -92,4 +93,9 @@ export function SwitchField<T extends FieldValues>({
       )}
     />
   );
+}
+
+/** Para handleSubmit(onSubmit, showInvalid): avisa cuando el formulario no se envió por errores. */
+export function showInvalid() {
+  toast.error("Revisa los campos marcados en rojo.");
 }

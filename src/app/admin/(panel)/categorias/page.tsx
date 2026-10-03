@@ -5,6 +5,7 @@ import { CategoryManager } from "@/components/admin/categories/category-manager"
 import { PageHeader } from "@/components/admin/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listCategoriesWithCounts } from "@/lib/catalog-admin-queries";
+import { getCloudinaryConfig } from "@/lib/cloudinary-server";
 import { requireAdmin } from "@/lib/dal";
 
 export const metadata: Metadata = { title: "Categorías" };
@@ -26,5 +27,7 @@ export default function CategoriesPage() {
 async function CategoriesLoader() {
   await requireAdmin();
   const categories = await listCategoriesWithCounts();
-  return <CategoryManager categories={categories} />;
+  return (
+    <CategoryManager categories={categories} imagesConfigured={getCloudinaryConfig() !== null} />
+  );
 }
