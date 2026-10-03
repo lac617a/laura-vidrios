@@ -184,3 +184,144 @@ export async function getCatalogFacets() {
     hasLed: ledCount > 0,
   };
 }
+
+// ── Detalle de producto ─────────────────────────────────────
+
+export type PublicVariant = {
+  sku: string;
+  widthCm: number;
+  heightCm: number;
+  price: number | null;
+  availability: Availability;
+  isDefault: boolean;
+};
+
+export type PublicProduct = {
+  id: string;
+  slug: string;
+  name: string;
+  reference: string;
+  description: string | null;
+  shape: MirrorShape;
+  frameMaterial: string | null;
+  frameColor: string | null;
+  style: string | null;
+  hasLed: boolean;
+  showPrice: boolean;
+  allowCustomSize: boolean;
+  /** Archivado o en una categoría oculta: se muestra "ya no disponible". */
+  unavailable: boolean;
+  category: { id: string; name: string; slug: string };
+  images: Array<{ publicId: string; alt: string | null; width: number; height: number }>;
+  variants: PublicVariant[];
+};
+
+/** Producto por slug para la ficha pública. null si no existe o es un borrador. */
+export async function getPublicProduct(slug: string): Promise<PublicProduct | null> {
+  "use cache";
+  cacheTag(PRODUCTS_TAG, CATEGORIES_TAG);
+  cacheLife("max");
+
+  const product = await prisma.product.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      reference: true,
+      description: true,
+      shape: true,
+      frameMaterial: true,
+      frameColor: true,
+      style: true,
+      hasLed: true,
+      showPrice: true,
+      allowCustomSize: true,
+      status: true,
+      category: { select: { id: true, name: true, slug: true, isActive: true } },
+      images: {
+        orderBy: { position: "asc" },
+        select: { publicId: true, alt: true, width: true, height: true },
+      },
+      variants: {
+        orderBy: { position: "asc" },
+        select: {
+          sku: true,
+          widthCm: true,
+          heightCm: true,
+          price: true,
+          availability: true,
+          isDefault: true,
+        },
+      },
+    },
+  });
+  if (!product || product.status === "DRAFT") return null;
+
+  const { status, category, ...rest } = product;
+  return {
+    ...rest,
+    unavailable: status === "ARCHIVED" || !category.isActive,
+    category: { id: category.id, name: category.name, slug: category.slug },
+  };
+}
+
+/** Hasta 4 productos parecidos: misma categoría primero, luego misma forma. */
+export async function getRelatedProducts(product: {
+  id: string;
+  categoryId: string;
+  shape: MirrorShape;
+}): Promise<CatalogCard[]> {
+  "use cache";
+  cacheTag(PRODUCTS_TAG, CATEGORIES_TAG);
+  cacheLife("max");
+
+  const products = await prisma.product.findMany({
+    where: {
+      ...PUBLISHED,
+      id: { not: product.id },
+      OR: [{ categoryId: product.categoryId }, { shape: product.shape }],
+    },
+    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+    take: 12,
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      reference: true,
+      shape: true,
+      hasLed: true,
+      showPrice: true,
+      categoryId: true,
+      category: { select: { name: true } },
+      images: { orderBy: { position: "asc" }, take: 2, select: { publicId: true, alt: true } },
+      variants: {
+        orderBy: { position: "asc" },
+        select: { widthCm: true, heightCm: true, price: true, availability: true },
+      },
+    },
+  });
+
+  return products
+    .sort(
+      (a, b) =>
+        Number(b.categoryId === product.categoryId) - Number(a.categoryId === product.categoryId),
+    )
+    .slice(0, 4)
+    .map(toCard);
+}
+
+/** Slugs que se prerenderizan en el build (los demás se generan en la primera visita). */
+export async function getPrerenderedProductSlugs(): Promise<string[]> {
+  "use cache";
+  cacheTag(PRODUCTS_TAG);
+  cacheLife("max");
+
+  const products = await prisma.product.findMany({
+    where: PUBLISHED,
+    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+    take: 50,
+    select: { slug: true },
+  });
+  return products.map((product) => product.slug);
+}

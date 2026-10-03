@@ -10,6 +10,8 @@ type UrlOptions = {
   aspectRatio?: string;
   /** fill recorta para llenar (con g_auto); limit solo reduce sin recortar. */
   crop?: "fill" | "limit";
+  /** auto (AVIF/WebP según el navegador) o jpg (vista previa de enlaces: WhatsApp no lee WebP siempre). */
+  format?: "auto" | "jpg";
   cloudName?: string;
 };
 
@@ -18,12 +20,19 @@ export const IMAGE_PRESETS = {
   card: { aspectRatio: "4:5", crop: "fill" },
   detail: { crop: "limit" },
   thumb: { aspectRatio: "1:1", crop: "fill" },
-  og: { width: 1200, height: 630, crop: "fill" },
+  og: { width: 1200, height: 630, crop: "fill", format: "jpg" },
 } as const satisfies Record<string, UrlOptions>;
 
 export function cloudinaryUrl(publicId: string, options: UrlOptions = {}): string {
-  const { width, height, aspectRatio, crop = "limit", cloudName = CLOUDINARY_CLOUD_NAME } = options;
-  const transformation = ["f_auto", "q_auto", `c_${crop}`];
+  const {
+    width,
+    height,
+    aspectRatio,
+    crop = "limit",
+    format = "auto",
+    cloudName = CLOUDINARY_CLOUD_NAME,
+  } = options;
+  const transformation = [`f_${format}`, "q_auto", `c_${crop}`];
   if (crop === "fill") transformation.push("g_auto");
   if (aspectRatio) transformation.push(`ar_${aspectRatio}`);
   if (width) transformation.push(`w_${width}`);

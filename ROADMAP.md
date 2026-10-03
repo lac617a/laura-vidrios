@@ -15,7 +15,7 @@
 | S2 | Categorías y productos | CRUD de catálogo con variantes de medida y precios COP | | ✅ Hecho |
 | S3 | Imágenes de producto | Subida a Cloudinary, orden y portada | 🏁 **A** | ✅ Hecho (Hito A espera el deploy) |
 | S4 | Catálogo público | `/espejos` con filtros, búsqueda y animaciones | | ✅ Hecho (falta Lighthouse sobre el deploy) |
-| S5 | Detalle de producto | `/espejos/[slug]` con galería, medidas y servicios | | ⬜ Pendiente |
+| S5 | Detalle de producto | `/espejos/[slug]` con galería, medidas y servicios | | ✅ Hecho |
 | S6 | Consulta por WhatsApp | Mensaje + registro de consulta con código | 🏁 **B** | ⬜ Pendiente |
 | S7 | Espejos a la medida | `/a-la-medida` con formulario guiado | | ⬜ Pendiente |
 | S8 | Landing y animaciones | Página de inicio completa | | ⬜ Pendiente |
@@ -208,19 +208,21 @@ gantt
 **Depende de:** S4
 
 **Tareas**
-- [ ] `/espejos/[slug]`: galería con swipe, zoom y miniaturas.
-- [ ] Ficha: referencia, forma, medidas, marco, color, LED, descripción y disponibilidad.
-- [ ] Selector de medida que sincroniza `?medida=60x80`, el precio y la disponibilidad.
-- [ ] "Otra medida": ancho × alto validados contra los límites de la configuración.
-- [ ] Casillas "Necesito envío" y "Necesito instalación", y ciudad con autocompletado (JSON estático de municipios de Colombia).
-- [ ] `opengraph-image.tsx`: foto, nombre, referencia y nombre del negocio.
-- [ ] Producto archivado: página "ya no disponible" con similares (`noindex`).
-- [ ] JSON-LD `Product` (con `offers` en COP solo si el precio es visible).
-- [ ] *(Opcional si sobra tiempo)* Productos relacionados (RF-D09).
+- [x] `/espejos/[slug]`: galería que se desliza en el celular, con flechas y miniaturas en desktop, y vista ampliada a pantalla completa con zoom ×2,2 donde se hace clic.
+- [x] Ficha técnica (referencia, forma, medidas, marco, color, estilo, LED, a la medida), descripción, ruta Catálogo › Categoría › Producto y disponibilidad por medida.
+- [x] Selector de medida en `?medida=60x80` (sin recargar la página): actualiza precio, disponibilidad y mensaje. La medida principal no agrega el parámetro.
+- [x] "Otra medida": ancho × alto (diámetro o lado en redondos y cuadrados) validados contra los límites de la configuración; precio "a cotizar".
+- [x] Casillas de envío e instalación (con los textos de la configuración y las ciudades de cobertura) y ciudad con sugerencias: 98 capitales y municipios de áreas metropolitanas, con texto libre.
+- [x] Vista previa de enlaces: og:image = portada en Cloudinary **1200 × 630 JPG (~12 KB)**, título "Nombre · Ref.", descripción y nombre del negocio. Sin foto, imagen por defecto del sitio (`opengraph-image.tsx` con `next/og`). *Cambio: no se genera un PNG por producto, porque una JPG ligera llega mejor a WhatsApp.*
+- [x] Archivado o en categoría oculta: "Este modelo ya no está disponible" con similares (`noindex`). Borradores e inexistentes: 404 en español.
+- [x] JSON-LD `Product` con `AggregateOffer` en COP solo si hay precio visible.
+- [x] Productos relacionados (RF-D09): misma categoría primero y luego la misma forma.
+- [x] Prerender en el build de los 50 productos principales (`generateStaticParams`); el resto se genera en la primera visita y queda en caché.
+- [x] Botón "Consultar por WhatsApp" con el mensaje completo del PRD (`buildProductInquiryMessage`, con tests). *Adelantado de S6; falta el código de consulta y su registro.*
 
 **Demo / terminado cuando**
-- Al cambiar de medida se actualizan el precio y la URL, y al recargar se mantiene la selección.
-- Al pegar el enlace en WhatsApp aparece la vista previa con la foto.
+- [x] Al cambiar de medida se actualizan el precio y la URL, y al recargar se mantiene la selección.
+- [x] La vista previa usa la foto: og:image verificada con fotos reales en Cloudinary (JPG 1200 × 630). *Falta verla en un WhatsApp real cuando el sitio tenga una URL pública.*
 
 ---
 
