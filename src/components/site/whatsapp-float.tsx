@@ -13,7 +13,7 @@ export function WhatsappFloat({ whatsappNumber }: { whatsappNumber: string }) {
       aria-label="Escríbenos por WhatsApp"
       title="Escríbenos por WhatsApp"
       data-whatsapp-float=""
-      className="fixed right-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 flex size-14 animate-in items-center justify-center rounded-full bg-whatsapp text-white shadow-lg shadow-black/20 transition-[background-color,scale] duration-200 zoom-in-50 fade-in hover:scale-105 hover:bg-whatsapp-hover focus-visible:ring-4 focus-visible:ring-whatsapp/40 focus-visible:outline-none active:scale-95 motion-reduce:animate-none motion-reduce:transition-none sm:right-6 sm:bottom-6"
+      className="whatsapp-pulse fixed right-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 flex size-14 animate-in items-center justify-center rounded-full bg-whatsapp text-white shadow-lg shadow-black/20 transition-[background-color,scale] duration-200 zoom-in-50 fade-in hover:scale-105 hover:bg-whatsapp-hover focus-visible:ring-4 focus-visible:ring-whatsapp/40 focus-visible:outline-none active:scale-95 motion-reduce:animate-none motion-reduce:transition-none sm:right-6 sm:bottom-6"
     >
       <WhatsappIcon className="size-7" />
     </GeneralWhatsappLink>

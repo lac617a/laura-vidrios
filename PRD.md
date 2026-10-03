@@ -251,7 +251,7 @@ Prioridad: **P0** = MVP · **P1** = poco después del lanzamiento · **P2** = fu
 | RF-A16c | Texto de la política de tratamiento de datos | P0 |
 | RF-A17 | Plantilla del mensaje de WhatsApp (ver RF-W06) | P1 |
 | RF-A18 | Gestión de usuarios (solo `OWNER`) | P1 |
-| RF-A19 | Textos de la landing (hero, FAQ) editables | P2 |
+| RF-A19 | Textos de la landing (hero, FAQ) editables. *En S8: foto principal y cifras de confianza (espejos instalados, años) ya son editables* | P2 |
 
 ---
 
@@ -277,7 +277,7 @@ Prioridad: **P0** = MVP · **P1** = poco después del lanzamiento · **P2** = fu
 |------|----------|---------|
 | Framework | **Next.js 16+ (App Router) + React 19 + TypeScript** | Un solo proyecto para landing, catálogo y admin. SSG/ISR para velocidad y SEO; Server Components y Server Actions para el admin sin una API aparte |
 | Estilos y UI | **Tailwind CSS v4 + shadcn/ui** | Componentes accesibles (formularios, tablas, diálogos, sheets) que son tuyos y se personalizan; ideal para el admin |
-| Animaciones | **Motion** (antes Framer Motion) + **Lenis** (scroll suave) | Animaciones al hacer scroll, layout animado en filtros y gestos en la galería. `LazyMotion` reduce el peso. GSAP solo si luego se quiere *scroll-telling* complejo |
+| Animaciones | **Motion** (antes Framer Motion) + **Lenis** (scroll suave) | Layout animado en filtros y transiciones del formulario a la medida. `LazyMotion` reduce el peso. En la landing, las animaciones de scroll van con CSS (sin JavaScript extra) para cumplir el presupuesto de rendimiento. GSAP solo si luego se quiere *scroll-telling* complejo |
 | ORM | **Prisma 7** | Esquema tipado, migraciones versionadas y el mismo código contra la BD local y Neon |
 | BD local | **PostgreSQL 18 nativo** (instalado con scoop; misma versión mayor que Neon) | Paridad total con producción (ver nota abajo) |
 | BD producción | **Neon** (Postgres serverless) | Gratis al inicio, backups, ramas para previews y *scale-to-zero* |

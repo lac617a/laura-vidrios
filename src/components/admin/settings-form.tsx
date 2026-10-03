@@ -187,6 +187,48 @@ export function SettingsForm({
         </FormSection>
 
         <FormSection
+          title="Página de inicio"
+          description="Foto principal y cifras de confianza. Lo que dejes vacío no se muestra."
+        >
+          <Controller
+            control={form.control}
+            name="heroImageUrl"
+            render={({ field }) => (
+              <Field>
+                <FieldLabel htmlFor="settings-hero">Foto principal (opcional)</FieldLabel>
+                <SingleImageField
+                  id="settings-hero"
+                  value={field.value}
+                  onChange={field.onChange}
+                  target={{ kind: "hero" }}
+                  configured={imagesConfigured}
+                  alt="Foto principal de la página de inicio"
+                />
+                <FieldDescription>
+                  Un espejo instalado, vertical y bien iluminado. Sin foto se usa la de un espejo
+                  destacado o una ilustración.
+                </FieldDescription>
+              </Field>
+            )}
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <TextField
+              name="statsInstalled"
+              label="Espejos instalados"
+              inputMode="numeric"
+              placeholder="Ej. 500"
+              description="Se muestra como «+500 espejos instalados»."
+            />
+            <TextField
+              name="statsYears"
+              label="Años de experiencia"
+              inputMode="numeric"
+              placeholder="Ej. 10"
+            />
+          </div>
+        </FormSection>
+
+        <FormSection
           title="Política de datos"
           description="Texto de la página de tratamiento de datos personales (Ley 1581 de 2012)."
         >
@@ -195,6 +237,7 @@ export function SettingsForm({
             label="Política de tratamiento de datos"
             multiline
             rows={8}
+            description="Si la dejas vacía, la web muestra un texto base con los datos del negocio. Hazla revisar por un asesor. Usa «## » al inicio de una línea para los títulos y «- » para las listas."
           />
         </FormSection>
 

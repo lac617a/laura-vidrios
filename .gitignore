@@ -47,5 +47,6 @@ next-env.d.ts
 # prisma client generado (se regenera en postinstall)
 /src/generated/
 
-# claude code (configuración local)
+# claude code (configuración local y worktrees de otras sesiones)
 .claude/settings.local.json
+.claude/worktrees/

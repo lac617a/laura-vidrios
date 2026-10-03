@@ -1,13 +1,11 @@
 "use client";
 
-import { MenuIcon } from "lucide-react";
+import { MenuIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useId, useRef } from "react";
 
 import { GeneralWhatsappLink } from "@/components/site/general-whatsapp-link";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { WhatsappIcon } from "@/components/whatsapp-icon";
 import { cn } from "@/lib/utils";
 
@@ -55,8 +53,6 @@ function NavContent({
   businessName: string;
   whatsappNumber: string;
 }) {
-  const [open, setOpen] = useState(false);
-
   return (
     <div className="flex items-center gap-2">
       <nav aria-label="Principal" className="hidden items-center gap-1 md:flex">
@@ -88,24 +84,64 @@ function NavContent({
         </GeneralWhatsappLink>
       )}
 
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger
-          render={
-            <Button variant="ghost" size="icon" className="md:hidden" aria-label="Abrir menú" />
-          }
-        >
-          <MenuIcon aria-hidden />
-        </SheetTrigger>
-        <SheetContent side="right" className="w-72">
-          <SheetHeader>
-            <SheetTitle className="font-heading text-2xl">{businessName}</SheetTitle>
-          </SheetHeader>
+      <MobileMenu pathname={pathname} businessName={businessName} />
+    </div>
+  );
+}
+
+/**
+ * Menú del celular con <dialog> nativo: foco atrapado, Esc y fondo inerte sin librerías (el
+ * Sheet de Base UI sumaba ~35 KB de JavaScript a todas las páginas públicas).
+ */
+function MobileMenu({ pathname, businessName }: { pathname: string | null; businessName: string }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  const close = () => dialogRef.current?.close();
+
+  return (
+    <>
+      <button
+        type="button"
+        aria-label="Abrir menú"
+        aria-haspopup="dialog"
+        onClick={() => {
+          dialogRef.current?.showModal();
+          document.documentElement.style.overflow = "hidden";
+        }}
+        className="inline-flex size-9 items-center justify-center rounded-full transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none md:hidden"
+      >
+        <MenuIcon className="size-5" aria-hidden />
+      </button>
+      <dialog
+        ref={dialogRef}
+        aria-labelledby={titleId}
+        onClose={() => document.documentElement.style.removeProperty("overflow")}
+        // Un clic en el fondo oscuro llega al <dialog> mismo: cierra.
+        onClick={(event) => {
+          if (event.target === event.currentTarget) close();
+        }}
+        className="fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-72 max-w-[85vw] animate-in bg-background p-0 text-foreground shadow-2xl duration-300 slide-in-from-right backdrop:bg-black/40 motion-reduce:animate-none md:hidden"
+      >
+        <div className="flex h-full flex-col">
+          <div className="flex items-center justify-between gap-2 p-4">
+            <p id={titleId} className="truncate font-heading text-2xl font-semibold">
+              {businessName}
+            </p>
+            <button
+              type="button"
+              aria-label="Cerrar menú"
+              onClick={close}
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-full hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+            >
+              <XIcon className="size-5" aria-hidden />
+            </button>
+          </div>
           <nav aria-label="Principal" className="flex flex-col px-2">
             {LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={() => setOpen(false)}
+                onClick={close}
                 aria-current={isActive(pathname, link.href) ? "page" : undefined}
                 className={cn(
                   "rounded-lg px-3 py-3 text-base",
@@ -116,8 +152,8 @@ function NavContent({
               </Link>
             ))}
           </nav>
-        </SheetContent>
-      </Sheet>
-    </div>
+        </div>
+      </dialog>
+    </>
   );
 }

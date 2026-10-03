@@ -5,6 +5,7 @@ import { useId, type ReactNode } from "react";
 
 import { Input } from "@/components/ui/input";
 import { COLOMBIA_CITIES } from "@/lib/colombia-cities";
+import { joinList } from "@/lib/text";
 import { cn } from "@/lib/utils";
 import { INQUIRY_CITY_MAX } from "@/lib/whatsapp";
 
@@ -83,10 +84,6 @@ export function ServiceOptions({
       )}
     </fieldset>
   );
-}
-
-function joinList(items: string[]) {
-  return items.length > 1 ? `${items.slice(0, -1).join(", ")} y ${items.at(-1)}` : items[0];
 }
 
 function ServiceCheckbox({

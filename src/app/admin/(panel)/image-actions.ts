@@ -30,6 +30,7 @@ const idSchema = z.string().min(1).max(40);
 const targetSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("product"), productId: idSchema }),
   z.object({ kind: z.literal("logo") }),
+  z.object({ kind: z.literal("hero") }),
   z.object({ kind: z.literal("category") }),
 ]);
 
@@ -55,9 +56,12 @@ export async function signImageUpload(target: unknown): Promise<ActionResult<Upl
   const parsed = targetSchema.safeParse(target);
   if (!parsed.success) return { ok: false, status: 400, error: "Solicitud inválida." };
 
-  // El logo es configuración del negocio: solo OWNER.
-  if (parsed.data.kind === "logo" && authorization.user.role !== "OWNER") {
-    return { ok: false, status: 403, error: "No tienes permiso para cambiar el logo." };
+  // El logo y la foto principal son configuración del negocio: solo OWNER.
+  if (
+    (parsed.data.kind === "logo" || parsed.data.kind === "hero") &&
+    authorization.user.role !== "OWNER"
+  ) {
+    return { ok: false, status: 403, error: "No tienes permiso para cambiar esta imagen." };
   }
   if (parsed.data.kind === "product") {
     const exists = await prisma.product.findUnique({

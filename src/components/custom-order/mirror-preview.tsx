@@ -12,7 +12,7 @@ import {
 import { hasEqualSides } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const loadFeatures = () => import("@/lib/motion-features").then((module) => module.default);
+const loadFeatures = () => import("@/lib/motion-features-basic").then((module) => module.default);
 
 const SPRING = { type: "spring", stiffness: 170, damping: 24 } as const;
 

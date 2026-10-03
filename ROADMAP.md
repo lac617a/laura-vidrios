@@ -18,7 +18,7 @@
 | S5 | Detalle de producto | `/espejos/[slug]` con galería, medidas y servicios | | ✅ Hecho |
 | S6 | Consulta por WhatsApp | Mensaje + registro de consulta con código | 🏁 **B** | ✅ Hecho en local (Hito B espera el deploy) |
 | S7 | Espejos a la medida | `/a-la-medida` con formulario guiado | | ✅ Hecho |
-| S8 | Landing y animaciones | Página de inicio completa | | ⬜ Pendiente |
+| S8 | Landing y animaciones | Página de inicio completa | | ✅ Hecho (Lighthouse 92–93 local) |
 | S9 | Seguimiento de consultas y dashboard | Gestión de consultas y KPIs | | ⬜ Pendiente |
 | S10 | Lanzamiento | SEO, rendimiento, QA, legal, go-live | 🏁 **C** | ⬜ Pendiente |
 | S11+ | Post-MVP | Mi selección, contenido, admin avanzado | | ⬜ Pendiente |
@@ -285,22 +285,24 @@ gantt
 **Depende de:** S4, S6 y S7 (usa categorías, destacados y los flujos ya hechos)
 
 **Tareas**
-- [ ] Motion con `LazyMotion` + Lenis para el scroll suave.
-- [ ] **Hero:** imagen o video, brillo de reflejo que cruza el espejo, parallax y titular escalonado. CTAs "Ver catálogo" y WhatsApp.
-- [ ] **Categorías** con imagen y hover con brillo.
-- [ ] **Destacados** (marcados en el admin) con botón directo a WhatsApp.
-- [ ] **Cómo funciona:** 3 pasos animados.
-- [ ] **A la medida:** sección con CTA a `/a-la-medida`.
-- [ ] **Servicios:** envío e instalación con zonas de cobertura (desde la configuración).
-- [ ] **Contadores** que suben al aparecer.
-- [ ] Footer completo y página `/politica-de-datos`.
-- [ ] JSON-LD `LocalBusiness`.
-- [ ] `prefers-reduced-motion` desactiva parallax, contadores y Lenis.
-- [ ] Presupuesto de rendimiento: hero precargado, secciones bajo el pliegue en diferido, solo `transform` y `opacity`.
+- [x] Lenis para el scroll suave (solo en la landing, con rueda o trackpad; se descarga después de hidratar). *Cambio: las animaciones de la landing van con CSS + un `IntersectionObserver` en vez de Motion, para cumplir el presupuesto de rendimiento (Motion sumaba ~46 KB gzip). Motion sigue en el grid del catálogo y en «A la medida».*
+- [x] **Hero:** foto principal (nueva en la configuración; si no hay, la portada de un destacado o una ilustración de espejo), brillo de reflejo que cruza el espejo, parallax con CSS ligado al scroll y titular escalonado (CSS, arranca con el HTML). CTAs "Ver catálogo" y WhatsApp.
+- [x] **Categorías** con imagen (de la categoría o de uno de sus espejos; si no, silueta), número de espejos y brillo al pasar el cursor. Tarjeta final "A la medida".
+- [x] **Destacados** (marcados en el admin; si no hay, los más recientes) con botón "Consultar" directo a WhatsApp con la medida principal (consulta `CATALOG`, canal `landing-destacados`).
+- [x] **Cómo funciona:** 3 pasos con aparición escalonada.
+- [x] **A la medida:** sección con CTA a `/a-la-medida` y accesos por forma (`?forma=`).
+- [x] **Servicios:** envío e instalación con los textos y zonas de cobertura de la configuración.
+- [x] **Contadores** que suben al aparecer: "espejos instalados" y "años de experiencia" (cifras nuevas y opcionales en la configuración: sin dato no se muestran, nada inventado) + modelos y medidas reales del catálogo.
+- [x] Footer completo (negocio, dirección, horario, explorar, contacto, redes, servicios, © y precios con IVA) y página `/politica-de-datos` con el texto de la configuración o, si está vacío, un texto base de la Ley 1581 con los datos del negocio (*revisión de un asesor en S10*).
+- [x] JSON-LD `LocalBusiness` (nombre, teléfono, dirección, zonas, redes).
+- [x] `prefers-reduced-motion` desactiva aparición, parallax, contadores, brillo, pulso y Lenis.
+- [x] Presupuesto de rendimiento: la landing sale prerenderizada (todo cacheado), foto del hero con `preload`, solo `transform` y `opacity`. Menú del celular con `<dialog>` nativo en vez del Sheet de Base UI (−35 KB en todas las páginas públicas). `priority` de next/image (deprecado en Next 16) → `preload` / `loading="eager"`.
+- [x] Pulso sutil del botón flotante de WhatsApp cada pocos segundos.
+- [x] E2E: hero → WhatsApp, destacado → WhatsApp en un toque con registro en la BD, secciones, política, JSON-LD, menú del celular y movimiento reducido.
 
 **Demo / terminado cuando**
-- Lighthouse móvil ≥ 90 en `/` con las animaciones activas.
-- Se llega a WhatsApp en 2 toques o menos desde la landing.
+- [x] Lighthouse móvil ≥ 90 en `/` con las animaciones activas: **92–93** en el build de producción local (antes de optimizar: 87–88). También `/espejos` 93, ficha 91 y `/a-la-medida` 92; Accesibilidad y SEO 100. *Repetir sobre el deploy con fotos reales (S10).*
+- [x] Se llega a WhatsApp en 1 toque desde la landing (hero, destacados, servicios, header y botón flotante).
 
 ---
 

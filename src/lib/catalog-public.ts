@@ -325,3 +325,142 @@ export async function getPrerenderedProductSlugs(): Promise<string[]> {
   });
   return products.map((product) => product.slug);
 }
+
+// ── Página de inicio ────────────────────────────────────────
+
+export type LandingCategory = {
+  slug: string;
+  name: string;
+  description: string | null;
+  productCount: number;
+  /** Imagen de la categoría (URL) o, si no tiene, la portada de uno de sus espejos (public_id). */
+  cover: { src: string; alt: string | null } | null;
+  /** Forma de un espejo de la categoría, para la silueta cuando no hay foto. */
+  shape: MirrorShape;
+};
+
+/** Medida principal de un destacado, para consultarlo por WhatsApp desde la landing. */
+export type QuickConsult = {
+  productId: string;
+  sku: string;
+  widthCm: number;
+  heightCm: number;
+  price: number | null;
+};
+
+export type FeaturedProduct = { card: CatalogCard; quick: QuickConsult | null };
+
+const LANDING_CARD_SELECT = {
+  id: true,
+  slug: true,
+  name: true,
+  reference: true,
+  shape: true,
+  hasLed: true,
+  showPrice: true,
+  category: { select: { name: true } },
+  images: { orderBy: { position: "asc" }, take: 2, select: { publicId: true, alt: true } },
+  variants: {
+    orderBy: { position: "asc" },
+    select: {
+      sku: true,
+      widthCm: true,
+      heightCm: true,
+      price: true,
+      availability: true,
+      isDefault: true,
+    },
+  },
+} satisfies Prisma.ProductSelect;
+
+/** Todo lo que la landing lee del catálogo, en una sola lectura cacheada. */
+export async function getLandingData() {
+  "use cache";
+  cacheTag(PRODUCTS_TAG, CATEGORIES_TAG);
+  cacheLife("max");
+
+  const [categories, featured, productCount, sizeCount] = await Promise.all([
+    prisma.category.findMany({
+      where: { isActive: true, products: { some: { status: "PUBLISHED" } } },
+      orderBy: [{ position: "asc" }, { name: "asc" }],
+      take: 8,
+      select: {
+        slug: true,
+        name: true,
+        description: true,
+        imageUrl: true,
+        _count: { select: { products: { where: { status: "PUBLISHED" } } } },
+        products: {
+          where: { status: "PUBLISHED" },
+          orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+          take: 6,
+          select: {
+            shape: true,
+            images: {
+              orderBy: { position: "asc" },
+              take: 1,
+              select: { publicId: true, alt: true },
+            },
+          },
+        },
+      },
+    }),
+    prisma.product.findMany({
+      where: { ...PUBLISHED, isFeatured: true },
+      orderBy: { updatedAt: "desc" },
+      take: 8,
+      select: LANDING_CARD_SELECT,
+    }),
+    prisma.product.count({ where: PUBLISHED }),
+    prisma.productVariant.count({ where: { product: PUBLISHED } }),
+  ]);
+
+  // Sin destacados marcados en el admin, se muestran los más recientes.
+  const showcase =
+    featured.length > 0
+      ? featured
+      : await prisma.product.findMany({
+          where: PUBLISHED,
+          orderBy: { createdAt: "desc" },
+          take: 4,
+          select: LANDING_CARD_SELECT,
+        });
+
+  return {
+    categories: categories.map((category): LandingCategory => {
+      const withPhoto = category.products.find((product) => product.images.length > 0);
+      const cover = category.imageUrl
+        ? { src: category.imageUrl, alt: category.name }
+        : withPhoto
+          ? { src: withPhoto.images[0].publicId, alt: withPhoto.images[0].alt }
+          : null;
+      return {
+        slug: category.slug,
+        name: category.name,
+        description: category.description,
+        productCount: category._count.products,
+        cover,
+        shape: category.products[0]?.shape ?? "RECTANGULAR",
+      };
+    }),
+    featured: showcase.map((product): FeaturedProduct => {
+      const main = product.variants.find((variant) => variant.isDefault) ?? product.variants[0];
+      return {
+        card: toCard(product),
+        quick: main
+          ? {
+              productId: product.id,
+              sku: main.sku,
+              widthCm: main.widthCm,
+              heightCm: main.heightCm,
+              price: product.showPrice ? main.price : null,
+            }
+          : null,
+      };
+    }),
+    featuredAreMarked: featured.length > 0,
+    stats: { productCount, sizeCount },
+  };
+}
+
+export type LandingData = Awaited<ReturnType<typeof getLandingData>>;

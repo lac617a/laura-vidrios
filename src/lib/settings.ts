@@ -25,6 +25,9 @@ const settingsSelect = {
   tiktokUrl: true,
   address: true,
   openingHours: true,
+  heroImageUrl: true,
+  statsInstalled: true,
+  statsYears: true,
 } as const;
 
 export type SiteSettings = {
@@ -47,6 +50,9 @@ export type SiteSettings = {
   tiktokUrl: string | null;
   address: string | null;
   openingHours: string | null;
+  heroImageUrl: string | null;
+  statsInstalled: number | null;
+  statsYears: number | null;
 };
 
 /** Valores cuando aún no se guardó la configuración (BD de producción recién creada). */
@@ -70,6 +76,9 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   tiktokUrl: null,
   address: null,
   openingHours: null,
+  heroImageUrl: null,
+  statsInstalled: null,
+  statsYears: null,
 };
 
 async function readSettings(): Promise<SiteSettings> {

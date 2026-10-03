@@ -61,7 +61,7 @@ import { inquirySource, registerInquiry, useInquiryCode } from "@/lib/inquiry-cl
 import { cn } from "@/lib/utils";
 import { buildCustomInquiryMessage, buildWhatsappUrl } from "@/lib/whatsapp";
 
-const loadFeatures = () => import("@/lib/motion-features").then((module) => module.default);
+const loadFeatures = () => import("@/lib/motion-features-basic").then((module) => module.default);
 
 export type CustomOrderContext = ServiceInfo & {
   whatsappNumber: string;

@@ -13,6 +13,14 @@ const optionalUrl = z
     message: "Debe ser un enlace que empiece por https://",
   });
 
+/** Cifra opcional para los contadores de la landing (vacío = no se muestra). */
+const optionalCount = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || /^\d{1,6}$/.test(value), {
+    message: "Solo números enteros (o vacío para no mostrarla).",
+  });
+
 const centimeters = z
   .number({ error: "Escribe un número." })
   .int("Usa centímetros enteros.")
@@ -50,6 +58,9 @@ export const settingsFormSchema = z
     customMaxCm: centimeters,
     customFrameOptions: text(2000),
     privacyPolicy: text(20000),
+    heroImageUrl: optionalImageUrl,
+    statsInstalled: optionalCount,
+    statsYears: optionalCount,
   })
   .refine((values) => values.customMinCm < values.customMaxCm, {
     path: ["customMaxCm"],
@@ -86,5 +97,8 @@ export function toSettingsData(values: SettingsFormValues) {
     customMaxCm: values.customMaxCm,
     customFrameOptions: parseList(values.customFrameOptions),
     privacyPolicy: nullIfEmpty(values.privacyPolicy),
+    heroImageUrl: nullIfEmpty(values.heroImageUrl),
+    statsInstalled: values.statsInstalled === "" ? null : Number(values.statsInstalled),
+    statsYears: values.statsYears === "" ? null : Number(values.statsYears),
   };
 }

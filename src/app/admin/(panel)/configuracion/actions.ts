@@ -28,7 +28,7 @@ export async function saveSettings(input: unknown): Promise<ActionResult> {
   const data = toSettingsData(parsed.data);
   const previous = await prisma.siteSettings.findUnique({
     where: { id: 1 },
-    select: { logoUrl: true },
+    select: { logoUrl: true, heroImageUrl: true },
   });
   await prisma.siteSettings.upsert({
     where: { id: 1 },
@@ -38,9 +38,12 @@ export async function saveSettings(input: unknown): Promise<ActionResult> {
 
   // El sitio público vuelve a leer la configuración en el próximo request.
   updateTag(SETTINGS_TAG);
-  // El logo reemplazado ya no se usa: se borra de Cloudinary.
+  // El logo o la foto principal reemplazados ya no se usan: se borran de Cloudinary.
   if (previous?.logoUrl && previous.logoUrl !== data.logoUrl) {
     await destroyImageAtUrl(previous.logoUrl);
+  }
+  if (previous?.heroImageUrl && previous.heroImageUrl !== data.heroImageUrl) {
+    await destroyImageAtUrl(previous.heroImageUrl);
   }
   return { ok: true };
 }

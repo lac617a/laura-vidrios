@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import { ProductCard } from "@/components/catalog/product-card";
 import { ProductGallery } from "@/components/catalog/product-gallery";
 import { ProductPurchasePanel } from "@/components/catalog/product-purchase-panel";
+import { JsonLd } from "@/components/json-ld";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SHAPE_LABELS } from "@/lib/catalog";
 import {
@@ -304,12 +305,7 @@ function ProductJsonLd({
     }),
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
-    />
-  );
+  return <JsonLd data={jsonLd} />;
 }
 
 function ProductSkeleton() {

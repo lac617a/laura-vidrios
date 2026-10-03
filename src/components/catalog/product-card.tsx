@@ -6,8 +6,11 @@ import { MirrorPlaceholder } from "@/components/catalog/mirror-placeholder";
 import { CloudinaryImage } from "@/components/cloudinary-image";
 import type { CatalogCard } from "@/lib/catalog-public";
 
-/** Tarjeta del catálogo: foto 4:5, segunda foto y brillo al pasar el cursor. */
-export function ProductCard({ card, priority = false }: { card: CatalogCard; priority?: boolean }) {
+/**
+ * Tarjeta del catálogo: foto 4:5, segunda foto y brillo al pasar el cursor.
+ * `eager`: las primeras del grid cargan sin esperar (no se precargan: varias pueden ser el LCP).
+ */
+export function ProductCard({ card, eager = false }: { card: CatalogCard; eager?: boolean }) {
   const [cover, second] = card.images;
 
   return (
@@ -23,7 +26,7 @@ export function ProductCard({ card, priority = false }: { card: CatalogCard; pri
               preset="card"
               alt={cover.alt ?? card.name}
               fill
-              priority={priority}
+              loading={eager ? "eager" : undefined}
               sizes="(min-width: 1024px) 280px, (min-width: 640px) 33vw, 50vw"
               className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03] motion-reduce:transition-none"
             />

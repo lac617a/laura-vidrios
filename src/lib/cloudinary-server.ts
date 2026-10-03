@@ -39,12 +39,15 @@ export function environmentFolder(): "prod" | "preview" | "dev" {
 }
 
 export type UploadTarget =
-  { kind: "product"; productId: string } | { kind: "logo" } | { kind: "category" };
+  | { kind: "product"; productId: string }
+  | { kind: "logo" }
+  | { kind: "hero" }
+  | { kind: "category" };
 
 export function uploadFolder(target: UploadTarget): string {
   const base = `catalogo-espejos/${environmentFolder()}`;
   if (target.kind === "product") return `${base}/productos/${target.productId}`;
-  if (target.kind === "logo") return `${base}/marca`;
+  if (target.kind === "logo" || target.kind === "hero") return `${base}/marca`;
   return `${base}/categorias`;
 }
 

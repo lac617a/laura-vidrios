@@ -5,7 +5,8 @@ import { config } from "dotenv";
 // comprobar el registro de consultas; e2e/db.ts se niega a conectarse a algo que no sea local.
 config({ quiet: true });
 
-const PORT = 3000;
+// E2E_PORT: para correr contra otro servidor ya levantado (p. ej. `pnpm start -p 3100`).
+const PORT = Number(process.env.E2E_PORT ?? 3000);
 const isCI = Boolean(process.env.CI);
 
 export default defineConfig({
@@ -29,7 +30,7 @@ export default defineConfig({
   ],
   // En local reutiliza `pnpm dev` si ya está corriendo; en CI arranca el build de producción.
   webServer: {
-    command: isCI ? "pnpm start" : "pnpm dev",
+    command: isCI ? `pnpm start -p ${PORT}` : `pnpm dev -p ${PORT}`,
     url: `http://localhost:${PORT}/api/health`,
     reuseExistingServer: !isCI,
     timeout: 120_000,

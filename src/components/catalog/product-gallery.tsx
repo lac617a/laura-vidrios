@@ -67,7 +67,7 @@ export function ProductGallery({
                 preset="card"
                 alt={image.alt ?? name}
                 fill
-                priority={index === 0}
+                preload={index === 0}
                 sizes="(min-width: 1024px) 50vw, 100vw"
                 className="object-cover"
               />

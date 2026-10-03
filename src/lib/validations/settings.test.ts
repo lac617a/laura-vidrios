@@ -24,6 +24,9 @@ const valid: SettingsFormValues = {
   customMaxCm: 250,
   customFrameOptions: "",
   privacyPolicy: "",
+  heroImageUrl: "",
+  statsInstalled: "",
+  statsYears: "",
 };
 
 describe("parseList", () => {
@@ -44,6 +47,17 @@ describe("settingsFormSchema", () => {
     expect(data.referencePrefix).toBe("ESP");
     expect(data.coverageAreas).toEqual(["Bogotá", "Medellín"]);
     expect(data.address).toBeNull();
+  });
+
+  it("cifras de la landing: vacías = null, números enteros", () => {
+    const empty = toSettingsData(settingsFormSchema.parse(valid));
+    expect(empty).toMatchObject({ heroImageUrl: null, statsInstalled: null, statsYears: null });
+    const filled = toSettingsData(
+      settingsFormSchema.parse({ ...valid, statsInstalled: " 500 ", statsYears: "8" }),
+    );
+    expect(filled).toMatchObject({ statsInstalled: 500, statsYears: 8 });
+    expect(settingsFormSchema.safeParse({ ...valid, statsInstalled: "+500" }).success).toBe(false);
+    expect(settingsFormSchema.safeParse({ ...valid, statsYears: "8.5" }).success).toBe(false);
   });
 
   it("rechaza un WhatsApp que no es celular colombiano", () => {

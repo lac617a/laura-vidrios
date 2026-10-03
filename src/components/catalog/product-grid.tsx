@@ -26,7 +26,7 @@ export function ProductGrid({ cards }: { cards: CatalogCard[] }) {
                 exit={{ opacity: 0, scale: 0.96 }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               >
-                <ProductCard card={card} priority={index < 4} />
+                <ProductCard card={card} eager={index < 4} />
               </m.li>
             ))}
           </AnimatePresence>

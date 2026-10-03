@@ -68,5 +68,8 @@ function toFormValues(settings: SiteSettings): SettingsFormValues {
     customMaxCm: settings.customMaxCm,
     customFrameOptions: settings.customFrameOptions.join("\n"),
     privacyPolicy: settings.privacyPolicy ?? "",
+    heroImageUrl: settings.heroImageUrl ?? "",
+    statsInstalled: settings.statsInstalled?.toString() ?? "",
+    statsYears: settings.statsYears?.toString() ?? "",
   };
 }

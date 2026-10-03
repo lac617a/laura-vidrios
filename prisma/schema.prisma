@@ -212,6 +212,11 @@ model SiteSettings {
   tiktokUrl          String?
   address            String?
   openingHours       String?
+  /// foto principal de la página de inicio (Cloudinary); sin foto, una ilustración
+  heroImageUrl       String?
+  /// cifras que da la dueña para los contadores de la landing (null = no se muestran)
+  statsInstalled     Int?
+  statsYears         Int?
   updatedAt          DateTime @updatedAt
 }
 

@@ -17,7 +17,7 @@ export async function SiteHeader() {
               alt=""
               width={80}
               height={40}
-              priority
+              loading="eager"
               className="h-9 w-auto shrink-0 object-contain"
             />
           )}
