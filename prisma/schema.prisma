@@ -281,6 +281,16 @@ model Verification {
   @@map("verification")
 }
 
+/// Límite de peticiones propio (ventana fija por clave), p. ej. el registro de consultas por IP.
+/// La clave lleva el hash de la IP, nunca la IP; las filas vencidas se borran solas.
+model RequestThrottle {
+  key         String   @id
+  count       Int
+  windowStart DateTime
+
+  @@index([windowStart])
+}
+
 /// Límite de intentos de login, compartido entre instancias serverless.
 model RateLimit {
   id          String @id

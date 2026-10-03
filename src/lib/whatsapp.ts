@@ -1,7 +1,11 @@
 // Utilidades de WhatsApp (puras: sirven en cliente y servidor).
-// El código de consulta y su registro llegan en el Sprint 6.
+// Los mensajes siguen el formato del PRD §5 y van sin emojis a propósito (se ven mal en algunos
+// teléfonos). El registro de la consulta vive en `inquiry-client.ts`.
 
 const COLOMBIA_CODE = "57";
+
+/** Largo máximo de la ciudad que escribe el cliente (también lo valida el servidor). */
+export const INQUIRY_CITY_MAX = 60;
 
 /**
  * Normaliza un celular colombiano al formato de wa.me: "57" + 10 dígitos que empiezan por 3.
@@ -36,11 +40,11 @@ export type ProductInquiryMessage = {
   needsShipping: boolean;
   needsInstallation: boolean;
   city: string;
-  /** Código de consulta (Sprint 6). */
-  code?: string;
+  /** Código de consulta; null mientras no exista (antes de hidratar). */
+  code: string | null;
 };
 
-/** Mensaje prellenado para consultar un producto (formato del PRD §5). Sin emojis a propósito. */
+/** Mensaje prellenado para consultar un producto. */
 export function buildProductInquiryMessage(input: ProductInquiryMessage): string {
   const lines = [
     "Hola, vi este espejo en la web y me interesa:",
@@ -64,5 +68,12 @@ export function buildProductInquiryMessage(input: ProductInquiryMessage): string
   lines.push("");
   if (input.code) lines.push(`Código de consulta: #${input.code}`);
   lines.push("¿Está disponible?");
+  return lines.join("\n");
+}
+
+/** Mensaje del botón flotante (consulta general). */
+export function buildGeneralInquiryMessage(code: string | null): string {
+  const lines = ["Hola, vengo de la página web y quiero más información."];
+  if (code) lines.push("", `Código de consulta: #${code}`);
   return lines.join("\n");
 }

@@ -133,7 +133,9 @@ async function ProductDetails({ params }: { params: Params }) {
         </div>
       </div>
 
-      {related.length > 0 && <RelatedProducts title="También te puede gustar" cards={related} />}
+      {related.length > 0 && (
+        <RelatedProducts title="También te puede gustar" cards={related} slug={product.slug} />
+      )}
 
       <ProductJsonLd product={product} siteUrl={siteUrl} businessName={settings.businessName} />
     </>
@@ -187,8 +189,9 @@ function Specs({ product }: { product: PublicProduct }) {
   if (product.allowCustomSize) rows.push(["A la medida", "Sí, en la medida que necesites"]);
 
   return (
-    <section aria-labelledby="specs-title" className="mt-10 border-t pt-6">
-      <h2 id="specs-title" className="text-sm font-semibold">
+    // Ids con el slug: Next guarda las fichas visitadas ocultas en el DOM (<Activity>).
+    <section aria-labelledby={`specs-${product.slug}`} className="mt-10 border-t pt-6">
+      <h2 id={`specs-${product.slug}`} className="text-sm font-semibold">
         Ficha técnica
       </h2>
       <dl className="mt-3 divide-y text-sm">
@@ -203,10 +206,18 @@ function Specs({ product }: { product: PublicProduct }) {
   );
 }
 
-function RelatedProducts({ title, cards }: { title: string; cards: CatalogCard[] }) {
+function RelatedProducts({
+  title,
+  cards,
+  slug,
+}: {
+  title: string;
+  cards: CatalogCard[];
+  slug: string;
+}) {
   return (
-    <section aria-labelledby="related-title" className="mt-20">
-      <h2 id="related-title" className="font-heading text-3xl font-semibold">
+    <section aria-labelledby={`related-${slug}`} className="mt-20">
+      <h2 id={`related-${slug}`} className="font-heading text-3xl font-semibold">
         {title}
       </h2>
       <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4">
@@ -246,7 +257,9 @@ function UnavailableProduct({
           Ver el catálogo
         </Link>
       </div>
-      {related.length > 0 && <RelatedProducts title="Espejos parecidos" cards={related} />}
+      {related.length > 0 && (
+        <RelatedProducts title="Espejos parecidos" cards={related} slug={product.slug} />
+      )}
     </>
   );
 }

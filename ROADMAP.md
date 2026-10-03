@@ -2,7 +2,7 @@
 
 > Plan de sprints por feature, derivado del [PRD.md](PRD.md). Los IDs (`RF-…`) remiten a los requisitos del PRD.
 > **Duración sugerida:** sprints de 1 semana; si el ritmo real es otro, se ajusta sin cambiar el orden.
-> **Última actualización:** 2026-10-02
+> **Última actualización:** 2026-10-03
 
 ---
 
@@ -16,7 +16,7 @@
 | S3 | Imágenes de producto | Subida a Cloudinary, orden y portada | 🏁 **A** | ✅ Hecho (Hito A espera el deploy) |
 | S4 | Catálogo público | `/espejos` con filtros, búsqueda y animaciones | | ✅ Hecho (falta Lighthouse sobre el deploy) |
 | S5 | Detalle de producto | `/espejos/[slug]` con galería, medidas y servicios | | ✅ Hecho |
-| S6 | Consulta por WhatsApp | Mensaje + registro de consulta con código | 🏁 **B** | ⬜ Pendiente |
+| S6 | Consulta por WhatsApp | Mensaje + registro de consulta con código | 🏁 **B** | ✅ Hecho en local (Hito B espera el deploy) |
 | S7 | Espejos a la medida | `/a-la-medida` con formulario guiado | | ⬜ Pendiente |
 | S8 | Landing y animaciones | Página de inicio completa | | ⬜ Pendiente |
 | S9 | Seguimiento de consultas y dashboard | Gestión de consultas y KPIs | | ⬜ Pendiente |
@@ -233,20 +233,22 @@ gantt
 **Depende de:** S5
 
 **Tareas**
-- [ ] `lib/whatsapp.ts`: arma el mensaje (producto, referencia, medida, precio, servicios, ciudad, enlace y código) y la URL de `wa.me`.
-- [ ] Tests unitarios del mensaje: tildes, `Ø`, `×`, saltos de línea, `encodeURIComponent` y longitud máxima.
-- [ ] Código de consulta generado en el cliente: 6 caracteres sin ambiguos (sin `0/O`, `1/I`).
-- [ ] El botón es un `<a href>` real y el registro se envía con `navigator.sendBeacon`.
-- [ ] `POST /api/inquiries`: validación Zod, rate limit por IP y snapshot de los ítems. Si falla, WhatsApp abre igual.
-- [ ] Barra inferior fija en móvil con el botón "Consultar por WhatsApp".
-- [ ] Botón flotante de WhatsApp en todo el sitio (consulta tipo `GENERAL`).
-- [ ] Evento de analítica `whatsapp_click`.
-- [ ] E2E con Playwright: elegir medida → verificar el `href` de `wa.me` → consulta registrada en la BD.
-- [ ] QA manual en iPhone (Safari), Android (Chrome) y desktop (WhatsApp Web o la app de escritorio).
+- [x] `lib/whatsapp.ts`: arma el mensaje (producto, referencia, medida, precio, servicios, ciudad, enlace y código) y la URL de `wa.me`. También el mensaje general del botón flotante y del header.
+- [x] Tests unitarios del mensaje: tildes, `Ø`, `×`, saltos de línea, `encodeURIComponent` y longitud máxima (URL < 2.000 caracteres con los datos más largos permitidos).
+- [x] Código de consulta de 6 caracteres sin ambiguos (sin `0/O`, `1/I/L`, 31⁶ combinaciones). Se genera en el navegador con `crypto.getRandomValues` sin sesgo, solo después de hidratar (no entra en el HTML prerenderizado), y se renueva después de cada clic.
+- [x] El botón es un `<a href>` real y el registro se envía con `navigator.sendBeacon` (con `fetch keepalive` de respaldo).
+- [x] `POST /api/inquiries`: validación Zod, rechazo de envíos desde otros sitios (`Sec-Fetch-Site`), máximo 4 KB y rate limit por IP en Postgres (20 cada 10 min; tabla `RequestThrottle` con el hash de la IP y filas que se borran al día). El snapshot (nombre, referencia, medida y precio) sale de la BD, no del navegador. Un código repetido se guarda con sufijo (`K7M2QX-2`). Si algo falla, WhatsApp abre igual.
+- [x] Barra inferior fija en móvil y tablet: precio, medida y "Consultar". Aparece cuando el botón principal no está en pantalla. Si falta la medida personalizada, ofrece "Elegir medida" y lleva al campo.
+- [x] Botón flotante de WhatsApp en todo el sitio (consulta `GENERAL`); el botón del header también registra. En la ficha no aparece, porque ahí manda el botón de consulta del producto.
+- [x] Evento de analítica `whatsapp_click` (`type`, `channel`) con Vercel Web Analytics, sin cookies. El origen de cada consulta queda en `source`: canal (detalle, barra-movil, flotante, header), página y `utm_*`.
+- [x] E2E con Playwright (escritorio y Pixel 7): medida del catálogo con envío y ciudad, medida personalizada (rango), botón flotante, barra móvil y rechazos de la API. Verifica el `href` de `wa.me` y la consulta en la BD. Corre en CI contra el build de producción.
+- [ ] QA manual en iPhone (Safari), Android (Chrome) y desktop (WhatsApp Web o la app de escritorio). *Necesita el sitio desplegado.*
+
+*Hallazgo:* con Cache Components, Next guarda las páginas visitadas ocultas en el DOM (`<Activity>`). Los ids y los `name` de los controles se generan con `useId`, y los estilos globales de una página van en un `<style>` que se apaga al ocultarse (ver AGENTS.md). El formulario de producto del admin tiene ids fijos: queda como tarea aparte.
 
 **Demo / terminado cuando**
-- La dueña recibe en su WhatsApp un mensaje real con referencia, medida, enlace con vista previa y código.
-- 🏁 **Hito B:** se puede compartir el catálogo con clientes (*soft launch*).
+- [ ] La dueña recibe en su WhatsApp un mensaje real con referencia, medida, enlace con vista previa y código. *Verificado en local hasta el `href` de wa.me y el registro en la BD; falta el deploy.*
+- 🏁 **Hito B:** se puede compartir el catálogo con clientes (*soft launch*) en cuanto el sitio esté desplegado.
 
 ---
 

@@ -1,12 +1,14 @@
 "use client";
 
-import { MenuIcon, MessageCircleIcon } from "lucide-react";
+import { MenuIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useState } from "react";
 
+import { GeneralWhatsappLink } from "@/components/site/general-whatsapp-link";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { WhatsappIcon } from "@/components/whatsapp-icon";
 import { cn } from "@/lib/utils";
 
 // Las secciones nuevas (A la medida, S7) se agregan aquí.
@@ -23,35 +25,35 @@ function isActive(pathname: string | null, href: string) {
 /** Navegación pública: enlaces en desktop y panel lateral en el celular. */
 export function SiteNav({
   businessName,
-  whatsappHref,
+  whatsappNumber,
 }: {
   businessName: string;
-  whatsappHref: string | null;
+  whatsappNumber: string;
 }) {
   return (
     // usePathname es dato de URL: en Suspense, con fallback sin enlace activo.
     <Suspense
       fallback={
-        <NavContent pathname={null} businessName={businessName} whatsappHref={whatsappHref} />
+        <NavContent pathname={null} businessName={businessName} whatsappNumber={whatsappNumber} />
       }
     >
-      <ActiveNav businessName={businessName} whatsappHref={whatsappHref} />
+      <ActiveNav businessName={businessName} whatsappNumber={whatsappNumber} />
     </Suspense>
   );
 }
 
-function ActiveNav(props: { businessName: string; whatsappHref: string | null }) {
+function ActiveNav(props: { businessName: string; whatsappNumber: string }) {
   return <NavContent pathname={usePathname()} {...props} />;
 }
 
 function NavContent({
   pathname,
   businessName,
-  whatsappHref,
+  whatsappNumber,
 }: {
   pathname: string | null;
   businessName: string;
-  whatsappHref: string | null;
+  whatsappNumber: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -75,16 +77,15 @@ function NavContent({
         ))}
       </nav>
 
-      {whatsappHref && (
-        <a
-          href={whatsappHref}
-          target="_blank"
-          rel="noopener noreferrer"
+      {whatsappNumber && (
+        <GeneralWhatsappLink
+          whatsappNumber={whatsappNumber}
+          channel="header"
           className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/85"
         >
-          <MessageCircleIcon className="size-4" aria-hidden />
+          <WhatsappIcon className="size-4" />
           <span>WhatsApp</span>
-        </a>
+        </GeneralWhatsappLink>
       )}
 
       <Sheet open={open} onOpenChange={setOpen}>

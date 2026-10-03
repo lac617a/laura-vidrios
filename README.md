@@ -64,6 +64,8 @@ El panel está en <http://localhost:3000/admin>. El seed crea dos usuarios **sol
 | `pnpm dev`                             | Servidor de desarrollo                                      |
 | `pnpm build`                           | Build de producción                                         |
 | `pnpm lint` · `typecheck` · `format`   | Calidad de código                                           |
+| `pnpm test`                            | Tests unitarios (Vitest)                                    |
+| `pnpm e2e`                             | E2E con Playwright contra la BD local con el seed. Reutiliza `pnpm dev` si está corriendo. La primera vez: `pnpm exec playwright install chromium` |
 | `pnpm db:start` · `db:stop` · `db:status` | PostgreSQL local (usa `pg_ctl` y `PGDATA`)               |
 | `pnpm db:migrate`                      | Crea y aplica migraciones **(solo local)**                  |
 | `pnpm db:deploy`                       | Aplica migraciones existentes (lo que corre en Vercel)      |
@@ -100,6 +102,7 @@ Reglas (PRD §9.2):
    - `NEXT_PUBLIC_SITE_URL` y `BETTER_AUTH_URL` con la URL `https://<proyecto>.vercel.app`.
    - `BETTER_AUTH_SECRET`: un secreto para Production y **otro distinto** para Preview.
 4. Desplegar y verificar `https://<proyecto>.vercel.app/api/health`.
+   - En **Analytics**, activar Web Analytics (visitas sin cookies). El evento `whatsapp_click` es un evento personalizado: Vercel solo los registra en el plan Pro.
 5. Crear la cuenta de la dueña en producción. Descarga temporalmente las variables de producción:
 
    ```bash

@@ -1,16 +1,18 @@
 "use client";
 
-import { MessageCircleIcon, RulerIcon, TruckIcon, WrenchIcon } from "lucide-react";
+import { RulerIcon, TruckIcon, WrenchIcon } from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useId, useRef, useState } from "react";
 
 import { Input } from "@/components/ui/input";
+import { WhatsappIcon } from "@/components/whatsapp-icon";
 import { AVAILABILITY_LABELS } from "@/lib/catalog";
 import type { PublicProduct, PublicVariant } from "@/lib/catalog-public";
 import { COLOMBIA_CITIES } from "@/lib/colombia-cities";
 import { formatCOP, formatMedida, hasEqualSides } from "@/lib/format";
+import { inquirySource, registerInquiry, useInquiryCode } from "@/lib/inquiry-client";
 import { cn } from "@/lib/utils";
-import { buildProductInquiryMessage, buildWhatsappUrl } from "@/lib/whatsapp";
+import { buildProductInquiryMessage, buildWhatsappUrl, INQUIRY_CITY_MAX } from "@/lib/whatsapp";
 
 const CUSTOM = "otra";
 
@@ -62,6 +64,9 @@ function PanelContent({
   const [needsShipping, setNeedsShipping] = useState(false);
   const [needsInstallation, setNeedsInstallation] = useState(false);
   const [city, setCity] = useState("");
+  // Ids únicos: Next guarda las fichas visitadas ocultas en el DOM (<Activity>), y un `name` o
+  // `id` fijo compartiría el grupo de radios o la etiqueta con la ficha oculta.
+  const uid = useId();
 
   const variants = product.variants;
   const defaultVariant = variants.find((variant) => variant.isDefault) ?? variants[0];
@@ -81,12 +86,17 @@ function PanelContent({
 
   const priceLabel =
     selected && product.showPrice && selected.price !== null ? formatCOP(selected.price) : null;
+  const headline = isCustom ? "Precio a cotizar" : (priceLabel ?? "Precio a consultar");
   const sizeLabel = selected
     ? formatMedida(selected.widthCm, selected.heightCm, product.shape)
     : customValid
       ? `${formatMedida(width, height, product.shape)} (medida personalizada)`
       : "";
+  // La ciudad solo cuenta si pidió envío o instalación (el campo se oculta al desmarcarlos).
+  const wantsServices = needsShipping || needsInstallation;
+  const serviceCity = wantsServices ? city.trim() : "";
 
+  const code = useInquiryCode();
   const productUrl = `${context.siteUrl}/espejos/${product.slug}${
     selected ? `?medida=${variantKey(selected)}` : ""
   }`;
@@ -102,17 +112,55 @@ function PanelContent({
           url: productUrl,
           needsShipping,
           needsInstallation,
-          city,
+          city: serviceCity,
+          code,
         }),
       )
     : null;
 
+  /** onClick de los enlaces a WhatsApp: registra la consulta sin frenar la navegación. */
+  function onConsult(channel: string) {
+    if (!code) return;
+    registerInquiry(
+      {
+        type: "CATALOG",
+        code,
+        productId: product.id,
+        sku: selected?.sku ?? null,
+        customSize: selected ? null : { widthCm: width, heightCm: height },
+        needsShipping,
+        needsInstallation,
+        city: serviceCity,
+        source: inquirySource(channel),
+      },
+      channel,
+    );
+  }
+
+  // La barra fija del celular aparece cuando el botón principal no está en pantalla.
+  const ctaRef = useRef<HTMLDivElement>(null);
+  const sizeRef = useRef<HTMLFieldSetElement>(null);
+  const [ctaInView, setCtaInView] = useState(true);
+  useEffect(() => {
+    const target = ctaRef.current;
+    if (!target) return;
+    const observer = new IntersectionObserver(([entry]) => setCtaInView(entry.isIntersecting));
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
+
+  function goToSize() {
+    const fieldset = sizeRef.current;
+    if (!fieldset) return;
+    const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    fieldset.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "center" });
+    fieldset.querySelector<HTMLInputElement>("input[type=number]")?.focus({ preventScroll: true });
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-3xl font-semibold tabular-nums">
-          {isCustom ? "Precio a cotizar" : (priceLabel ?? "Precio a consultar")}
-        </p>
+        <p className="text-3xl font-semibold tabular-nums">{headline}</p>
         {selected && (
           <p
             className={cn(
@@ -127,13 +175,13 @@ function PanelContent({
       </div>
 
       {(variants.length > 0 || product.allowCustomSize) && (
-        <fieldset className="space-y-3">
+        <fieldset ref={sizeRef} className="scroll-mt-24 space-y-3">
           <legend className="mb-3 text-sm font-semibold">Medida</legend>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {variants.map((variant) => (
               <SizeOption
                 key={variant.sku}
-                name="medida"
+                name={`${uid}-medida`}
                 checked={selected?.sku === variant.sku}
                 onSelect={() =>
                   setMedida(variant.sku === defaultVariant?.sku ? null : variantKey(variant))
@@ -151,7 +199,7 @@ function PanelContent({
             ))}
             {product.allowCustomSize && (
               <SizeOption
-                name="medida"
+                name={`${uid}-medida`}
                 checked={isCustom}
                 onSelect={() => setMedida(CUSTOM)}
                 label="Otra medida"
@@ -211,7 +259,7 @@ function PanelContent({
       <fieldset className="space-y-3">
         <legend className="mb-3 text-sm font-semibold">¿Necesitas algo más? (opcional)</legend>
         <ServiceCheckbox
-          id="service-shipping"
+          id={`${uid}-shipping`}
           icon={<TruckIcon className="size-4" aria-hidden />}
           label="Envío"
           checked={needsShipping}
@@ -219,7 +267,7 @@ function PanelContent({
           info={needsShipping ? context.shippingInfo : null}
         />
         <ServiceCheckbox
-          id="service-installation"
+          id={`${uid}-installation`}
           icon={<WrenchIcon className="size-4" aria-hidden />}
           label="Instalación"
           checked={needsInstallation}
@@ -233,17 +281,18 @@ function PanelContent({
               : null
           }
         />
-        {(needsShipping || needsInstallation) && (
+        {wantsServices && (
           <label className="block space-y-1">
             <span className="text-sm">Ciudad</span>
             <Input
-              list="colombia-cities"
+              list={`${uid}-cities`}
               autoComplete="address-level2"
               placeholder="Ej. Medellín"
+              maxLength={INQUIRY_CITY_MAX}
               value={city}
               onChange={(event) => setCity(event.target.value)}
             />
-            <datalist id="colombia-cities">
+            <datalist id={`${uid}-cities`}>
               {COLOMBIA_CITIES.map((name) => (
                 <option key={name} value={name} />
               ))}
@@ -252,24 +301,127 @@ function PanelContent({
         )}
       </fieldset>
 
-      {whatsappHref ? (
-        <a
+      <div ref={ctaRef}>
+        {whatsappHref ? (
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => onConsult("detalle")}
+            data-testid="whatsapp-cta"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-6 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/85 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          >
+            <WhatsappIcon className="size-5" />
+            Consultar por WhatsApp
+          </a>
+        ) : (
+          <p className="rounded-full border border-dashed px-6 py-3 text-center text-sm text-muted-foreground">
+            {!context.whatsappNumber
+              ? "Muy pronto podrás consultarnos por WhatsApp."
+              : "Escribe la medida que necesitas para consultar."}
+          </p>
+        )}
+      </div>
+
+      {context.whatsappNumber && (
+        <StickyConsultBar
+          visible={!ctaInView}
+          headline={headline}
+          detail={sizeLabel || "Escribe tu medida"}
           href={whatsappHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-6 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/85 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-        >
-          <MessageCircleIcon className="size-5" aria-hidden />
-          Consultar por WhatsApp
-        </a>
-      ) : (
-        <p className="rounded-full border border-dashed px-6 py-3 text-center text-sm text-muted-foreground">
-          {!context.whatsappNumber
-            ? "Muy pronto podrás consultarnos por WhatsApp."
-            : "Escribe la medida que necesitas para consultar."}
-        </p>
+          onConsult={() => onConsult("barra-movil")}
+          onChooseSize={goToSize}
+        />
       )}
     </div>
+  );
+}
+
+/** Barra inferior fija en el celular (y tablet): precio, medida y el botón de WhatsApp. */
+function StickyConsultBar({
+  visible,
+  headline,
+  detail,
+  href,
+  onConsult,
+  onChooseSize,
+}: {
+  visible: boolean;
+  headline: string;
+  detail: string;
+  href: string | null;
+  onConsult: () => void;
+  onChooseSize: () => void;
+}) {
+  const action =
+    "flex h-11 shrink-0 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none";
+  return (
+    <>
+      <ProductPageStyles />
+      <div
+        data-testid="sticky-cta"
+        inert={!visible}
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-12px_oklch(0.3_0.02_60/0.25)] backdrop-blur transition-[translate,visibility] duration-300 motion-reduce:transition-none lg:hidden",
+          // invisible al terminar de bajar: sale del árbol de accesibilidad y del orden de foco.
+          visible ? "visible translate-y-0" : "invisible translate-y-full",
+        )}
+      >
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-semibold tabular-nums">{headline}</p>
+            <p className="truncate text-xs text-muted-foreground">{detail}</p>
+          </div>
+          {href ? (
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={onConsult}
+              className={cn(action, "bg-primary text-primary-foreground hover:bg-primary/85")}
+            >
+              <WhatsappIcon className="size-4" />
+              Consultar
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={onChooseSize}
+              className={cn(action, "border bg-background hover:bg-secondary")}
+            >
+              <RulerIcon className="size-4" aria-hidden />
+              Elegir medida
+            </button>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Mientras la ficha está visible: sin botón flotante (aquí manda el botón de consulta) y con espacio
+// abajo para que la barra fija no tape el footer en el celular.
+const PRODUCT_PAGE_CSS =
+  "[data-whatsapp-float]{display:none}" +
+  "@media (width < 64rem){body{padding-bottom:calc(4.5rem + env(safe-area-inset-bottom))}}";
+
+/**
+ * Next guarda las páginas visitadas ocultas en el DOM (<Activity>). Al ocultarse la ficha, la
+ * limpieza del ref desactiva la hoja con media="not all" para que no afecte a la página visible.
+ * Viene en el HTML del servidor: no hay parpadeo del botón flotante al cargar.
+ */
+function ProductPageStyles() {
+  return (
+    <style
+      ref={(style) => {
+        if (style) style.media = "all";
+        return () => {
+          if (style) style.media = "not all";
+        };
+      }}
+    >
+      {PRODUCT_PAGE_CSS}
+    </style>
   );
 }
 

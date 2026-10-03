@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
+import { useId, useRef, useState, type ReactNode } from "react";
 
 import { PriceInput } from "@/components/admin/price-input";
 import { Input } from "@/components/ui/input";
@@ -109,14 +109,12 @@ export function CatalogFiltersPanel({
       <FilterGroup title="Características">
         {facets.hasLed && (
           <SwitchRow
-            id="filter-led"
             label="Con luz LED"
             checked={filters.led}
             onChange={(checked) => onChange({ led: checked || null })}
           />
         )}
         <SwitchRow
-          id="filter-stock"
           label="Disponible para entrega inmediata"
           checked={filters.disponible}
           onChange={(checked) => onChange({ disponible: checked || null })}
@@ -185,16 +183,16 @@ function Chip({
 }
 
 function SwitchRow({
-  id,
   label,
   checked,
   onChange,
 }: {
-  id: string;
   label: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
 }) {
+  // useId: el panel se dibuja dos veces (barra lateral y hoja del celular).
+  const id = useId();
   return (
     <div className="flex items-center justify-between gap-3">
       <label htmlFor={id} className="text-sm">
@@ -232,7 +230,7 @@ function RangeFields({
     timer.current = setTimeout(() => onCommit(nextFrom, nextTo), 700);
   }
 
-  const id = `range-${label.toLowerCase()}`;
+  const id = useId();
   const edges = [
     { key: "from", text: "Desde", value: from },
     { key: "to", text: "Hasta", value: to },

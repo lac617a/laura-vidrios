@@ -151,7 +151,7 @@ Prioridad: **P0** = MVP · **P1** = poco después del lanzamiento · **P2** = fu
 | RF-L03 | Productos destacados (marcados en el admin) con botón directo a WhatsApp | P0 |
 | RF-L04 | "Cómo funciona" en 3 pasos: Elige → Consulta por WhatsApp → Te lo enviamos e instalamos | P0 |
 | RF-L05 | Sección "Espejos a la medida" con CTA a `/a-la-medida` | P0 |
-| RF-L06 | Botón flotante de WhatsApp en todo el sitio (consulta general) | P0 |
+| RF-L06 | Botón flotante de WhatsApp en todo el sitio (consulta general). En la ficha de producto lo reemplazan el botón de consulta del producto y, en móvil, la barra fija | P0 |
 | RF-L07 | Footer con nombre del negocio (configurable), ubicación, horario, redes, WhatsApp y enlace a la política de datos | P0 |
 | RF-L08 | Sección "Servicios": envío e instalación, con cobertura (ciudades o zonas) editable desde el admin | P0 |
 | RF-L09 | Galería de proyectos o instalaciones reales | P1 |
@@ -265,7 +265,7 @@ Prioridad: **P0** = MVP · **P1** = poco después del lanzamiento · **P2** = fu
 | **Accesibilidad** | WCAG 2.2 AA: contraste, foco visible, navegación con teclado, `alt` en todas las imágenes (por defecto el nombre del producto) y `prefers-reduced-motion` |
 | **Seguridad** | `/admin` protegido en dos capas: chequeo rápido en `proxy.ts` y verificación real de sesión en cada layout o Server Action. Validación con Zod en el servidor, rate limit en login y en consultas, y secretos solo en variables de entorno |
 | **Datos** | Backups y restauración point-in-time de Neon (según el plan). Las consultas guardan un *snapshot* del nombre, la referencia y el precio, para que el historial no cambie si se edita el producto |
-| **Analítica** | Eventos `whatsapp_click`, `custom_quote_click`, `filter_used` y `product_view` con una herramienta respetuosa de la privacidad (Vercel Analytics o Umami). Las visitas no se guardan en la BD |
+| **Analítica** | Eventos `whatsapp_click`, `custom_quote_click`, `filter_used` y `product_view` con una herramienta respetuosa de la privacidad (**Vercel Web Analytics**, elegida en S6: sin cookies; los eventos personalizados requieren el plan Pro). Las visitas no se guardan en la BD |
 | **Localización** | `lang="es-CO"`, `og:locale` `es_CO`, precios en COP sin decimales (`$ 850.000`), medidas en centímetros, fechas en zona `America/Bogota` |
 | **Legal (Colombia)** | Política de tratamiento de datos personales según la Ley 1581 de 2012 (se guardan nombre, teléfono y ciudad del cliente que registra la dueña). Precios visibles con IVA incluido (Estatuto del Consumidor, Ley 1480 de 2011). Validar los textos con un asesor legal antes del lanzamiento |
 
