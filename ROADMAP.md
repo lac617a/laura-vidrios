@@ -14,7 +14,7 @@
 | S1 | Acceso y configuración del negocio | Login del admin, nombre y WhatsApp configurables | | ✅ Hecho en local (falta probar en producción) |
 | S2 | Categorías y productos | CRUD de catálogo con variantes de medida y precios COP | | ✅ Hecho |
 | S3 | Imágenes de producto | Subida a Cloudinary, orden y portada | 🏁 **A** | ✅ Hecho (Hito A espera el deploy) |
-| S4 | Catálogo público | `/espejos` con filtros, búsqueda y animaciones | | ⬜ Pendiente |
+| S4 | Catálogo público | `/espejos` con filtros, búsqueda y animaciones | | ✅ Hecho (falta Lighthouse sobre el deploy) |
 | S5 | Detalle de producto | `/espejos/[slug]` con galería, medidas y servicios | | ⬜ Pendiente |
 | S6 | Consulta por WhatsApp | Mensaje + registro de consulta con código | 🏁 **B** | ⬜ Pendiente |
 | S7 | Espejos a la medida | `/a-la-medida` con formulario guiado | | ⬜ Pendiente |
@@ -184,20 +184,20 @@ gantt
 **Depende de:** S3
 
 **Tareas**
-- [ ] Layout público definitivo: header (logo o nombre, navegación, botón de WhatsApp) y footer.
-- [ ] `/espejos`: grid responsivo y tarjeta con foto 4:5, nombre, referencia, rango de medidas y precio "desde".
-- [ ] Animación de la tarjeta: segunda foto y brillo diagonal en hover.
-- [ ] Filtros sincronizados con la URL (nuqs): categoría, forma, ancho y alto, marco, LED, disponibilidad y precio. En móvil van dentro de un sheet inferior.
-- [ ] Búsqueda por nombre o referencia, sin importar tildes ni mayúsculas (`searchText`).
-- [ ] "Cargar más" con paginación por cursor.
-- [ ] Reacomodo animado del grid al filtrar (Motion `layout` + `AnimatePresence`).
-- [ ] Caché con `revalidateTag('products')` disparado desde las acciones del admin.
-- [ ] Estado vacío: "No encontramos espejos con esos filtros", con CTA a "A la medida".
+- [x] Header público: logo o nombre, navegación (Inicio, Catálogo) con la página activa, WhatsApp y menú lateral en móvil. *El footer definitivo queda para S8.*
+- [x] `/espejos`: grid de 2 columnas en móvil, 3 en tablet y 4 en desktop. Tarjeta con foto 4:5, nombre, referencia, rango de medidas, precio "desde" y etiquetas "Luz LED" y "Bajo pedido". Sin foto se muestra la silueta del espejo según su forma.
+- [x] Animación de la tarjeta: segunda foto y brillo diagonal en hover (respeta `prefers-reduced-motion`).
+- [x] Filtros en la URL con nuqs y en español (`?categoria=bano&forma=redondo&ancho_max=80`): categoría, forma, ancho y alto (desde/hasta), marco, LED, entrega inmediata y precio. Solo se muestran opciones con productos. En desktop van en una barra lateral y en móvil en un panel inferior con "Ver N espejos". Chips de filtros activos y "Limpiar filtros".
+- [x] Búsqueda por nombre o referencia sin tildes; cada palabra debe coincidir.
+- [x] "Cargar más" de 24 en 24 subiendo `?pagina=` en la URL (se puede compartir; reemplaza al cursor).
+- [x] Reacomodo animado del grid (Motion `layout` + `AnimatePresence`, cargado en diferido con `LazyMotion`). La primera carga no se anima.
+- [x] Caché: `getCatalogPage` y `getCatalogFacets` con `"use cache"` + tags `products` y `categories`, invalidadas por las acciones del admin.
+- [x] Estado vacío con "Ver todos los espejos" y "Pedir uno a la medida" por WhatsApp (pasa a `/a-la-medida` en S7).
 
 **Demo / terminado cuando**
-- Una URL con filtros se comparte y abre con los mismos resultados.
-- Lighthouse móvil ≥ 90 en `/espejos`.
-- Un producto editado en el admin se ve actualizado en menos de 1 minuto.
+- [x] Una URL con filtros se comparte y abre con los mismos resultados (probado con forma, búsqueda y medida).
+- [ ] Lighthouse móvil ≥ 90 en `/espejos`. *Se mide sobre el deploy (PageSpeed Insights) en cuanto esté en Vercel.*
+- [x] Un producto editado en el admin se ve actualizado **en la siguiente carga** del catálogo.
 
 ---
 

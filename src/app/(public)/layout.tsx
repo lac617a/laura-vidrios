@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
@@ -14,10 +15,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function PublicLayout({ children }: LayoutProps<"/">) {
   return (
-    <>
+    <NuqsAdapter>
       <SiteHeader />
       <div className="flex flex-1 flex-col">{children}</div>
       <SiteFooter />
-    </>
+    </NuqsAdapter>
   );
 }
