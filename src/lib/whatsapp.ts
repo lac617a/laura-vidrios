@@ -55,19 +55,43 @@ export function buildProductInquiryMessage(input: ProductInquiryMessage): string
   ];
   if (input.priceLabel) lines.push(`Precio: ${input.priceLabel}`);
   lines.push(input.url);
-
-  const services = [
-    input.needsShipping && "envío",
-    input.needsInstallation && "instalación",
-  ].filter(Boolean);
-  const city = input.city.trim();
-  if (services.length > 0 || city) lines.push("");
-  if (services.length > 0) lines.push(`Necesito: ${services.join(" e ")}`);
-  if (city) lines.push(`Ciudad: ${city}`);
+  lines.push(...serviceLines(input));
 
   lines.push("");
   if (input.code) lines.push(`Código de consulta: #${input.code}`);
   lines.push("¿Está disponible?");
+  return lines.join("\n");
+}
+
+export type CustomInquiryMessage = {
+  shapeLabel: string;
+  sizeLabel: string;
+  frame: string;
+  hasLed: boolean;
+  quantity: number;
+  /** Ya normalizadas (`normalizeNotes`); pueden tener saltos de línea. */
+  notes: string;
+  needsShipping: boolean;
+  needsInstallation: boolean;
+  city: string;
+  code: string | null;
+};
+
+/** Mensaje del formulario «A la medida» (PRD §5, segundo ejemplo). */
+export function buildCustomInquiryMessage(input: CustomInquiryMessage): string {
+  const lines = [
+    "Hola, quiero cotizar un espejo a la medida:",
+    "",
+    `Forma: ${input.shapeLabel}`,
+    `Medida: ${input.sizeLabel}`,
+    `Marco: ${input.frame}`,
+    `Luz LED: ${input.hasLed ? "Sí" : "No"}`,
+    `Cantidad: ${input.quantity}`,
+  ];
+  const notes = input.notes.trim();
+  if (notes) lines.push(`Notas: ${notes}`);
+  lines.push(...serviceLines(input));
+  if (input.code) lines.push("", `Código de consulta: #${input.code}`);
   return lines.join("\n");
 }
 
@@ -76,4 +100,17 @@ export function buildGeneralInquiryMessage(code: string | null): string {
   const lines = ["Hola, vengo de la página web y quiero más información."];
   if (code) lines.push("", `Código de consulta: #${code}`);
   return lines.join("\n");
+}
+
+/** Bloque "Necesito: envío e instalación / Ciudad: …", precedido de una línea en blanco. */
+function serviceLines(input: { needsShipping: boolean; needsInstallation: boolean; city: string }) {
+  const services = [
+    input.needsShipping && "envío",
+    input.needsInstallation && "instalación",
+  ].filter(Boolean);
+  const city = input.city.trim();
+  const lines: string[] = [];
+  if (services.length > 0) lines.push(`Necesito: ${services.join(" e ")}`);
+  if (city) lines.push(`Ciudad: ${city}`);
+  return lines.length > 0 ? ["", ...lines] : [];
 }

@@ -1,48 +1,15 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-import { deleteInquiries, findInquiry, resetRateLimits } from "./db";
+import { findInquiry } from "./db";
+import { chooseOption, openWhatsapp, readWhatsappLink, setupInquiryTests } from "./helpers";
 
 // Flujo de venta (Hito B): elegir medida → enlace de wa.me con el mensaje y el código →
 // la consulta queda registrada en la BD. Datos del seed: WhatsApp 573000000000,
 // ESP-0001 Espejo Redondo Luna LED (Ø 60 / Ø 80), ESP-0002 Rectangular Baño Classic (60 × 80 a $ 260.000).
 
-const WHATSAPP = "https://wa.me/573000000000";
-const created: string[] = [];
+setupInquiryTests();
 
-test.beforeEach(async ({ context }) => {
-  await resetRateLimits();
-  // No se abre WhatsApp de verdad: la pestaña nueva recibe una página vacía.
-  await context.route("https://wa.me/**", (route) =>
-    route.fulfill({ contentType: "text/html", body: "<title>WhatsApp</title>" }),
-  );
-});
-
-test.afterAll(async () => {
-  await deleteInquiries(created);
-});
-
-/** Espera a que el enlace tenga el código (se genera al hidratar) y devuelve el mensaje y el código. */
-async function readWhatsappLink(link: Locator) {
-  await expect(link).toHaveAttribute("href", /C%C3%B3digo%20de%20consulta%3A%20%23[A-Z2-9]{6}/);
-  const url = new URL((await link.getAttribute("href"))!);
-  expect(`${url.origin}${url.pathname}`).toBe(WHATSAPP);
-  const message = url.searchParams.get("text") ?? "";
-  const code = /Código de consulta: #([A-Z2-9]{6})/.exec(message)![1];
-  created.push(code);
-  return { message, code };
-}
-
-/** Toca el enlace (abre la pestaña de WhatsApp interceptada) y la cierra. */
-async function openWhatsapp(page: Page, link: Locator) {
-  const popup = page.waitForEvent("popup");
-  await link.click();
-  await (await popup).close();
-}
-
-/** Las opciones de medida son radios ocultos dentro de una etiqueta: se toca la etiqueta. */
-async function chooseSize(page: Page, name: RegExp) {
-  await page.getByRole("radio", { name }).locator("xpath=..").click();
-}
+const chooseSize = (page: Page, name: RegExp) => chooseOption(page, name);
 
 test("consulta de una medida del catálogo con envío y ciudad", async ({ page }) => {
   await page.goto("/espejos/espejo-rectangular-bano-classic");
@@ -50,7 +17,7 @@ test("consulta de una medida del catálogo con envío y ciudad", async ({ page }
   await expect(page).toHaveURL(/[?&]medida=60x80/);
 
   await page.getByRole("checkbox", { name: "Necesito envío" }).check();
-  await page.getByLabel("Ciudad").fill("Medellín");
+  await page.getByRole("combobox", { name: "Ciudad" }).fill("Medellín");
 
   const cta = page.getByRole("link", { name: "Consultar por WhatsApp" });
   await expect(cta).toHaveAttribute("href", /Medell%C3%ADn/);
@@ -92,7 +59,7 @@ test("medida personalizada en un espejo redondo", async ({ page }) => {
   await chooseSize(page, /Otra medida/);
   await expect(page).toHaveURL(/[?&]medida=otra/);
 
-  const diameter = page.getByLabel("Diámetro (cm)");
+  const diameter = page.getByRole("spinbutton", { name: "Diámetro (cm)" });
   await diameter.fill("300");
   await expect(page.getByText("Escribe la medida que necesitas para consultar.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Consultar por WhatsApp" })).toHaveCount(0);

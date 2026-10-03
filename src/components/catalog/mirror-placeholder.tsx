@@ -2,7 +2,7 @@ import type { MirrorShape } from "@/generated/prisma/enums";
 import { cn } from "@/lib/utils";
 
 // Silueta del espejo según su forma, para productos que aún no tienen foto.
-const SHAPE_CLASS: Record<MirrorShape, string> = {
+export const MIRROR_SHAPE_CLASS: Record<MirrorShape, string> = {
   RECTANGULAR: "aspect-[3/4] w-1/2 rounded-sm",
   SQUARE: "aspect-square w-3/5 rounded-sm",
   ROUND: "aspect-square w-3/5 rounded-full",
@@ -24,7 +24,7 @@ export function MirrorPlaceholder({
       aria-hidden
       className={cn("flex size-full items-center justify-center bg-muted", className)}
     >
-      <div className={cn("mirror-surface", SHAPE_CLASS[shape])} />
+      <div className={cn("mirror-surface", MIRROR_SHAPE_CLASS[shape])} />
     </div>
   );
 }

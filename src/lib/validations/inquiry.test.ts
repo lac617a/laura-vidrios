@@ -37,6 +37,39 @@ describe("inquiryPayloadSchema", () => {
     ).toBe(false);
   });
 
+  describe("a la medida", () => {
+    const custom = {
+      type: "CUSTOM",
+      code: "P4W9TZ",
+      shape: "RECTANGULAR",
+      widthCm: 120,
+      heightCm: 180,
+      frame: "Aluminio negro",
+      hasLed: true,
+      quantity: 1,
+      notes: "Para el baño\nesquinas redondeadas",
+      needsShipping: false,
+      needsInstallation: true,
+      city: "Bogotá",
+      source: "a-la-medida",
+    };
+
+    it("acepta notas de varias líneas", () => {
+      expect(inquiryPayloadSchema.parse(custom)).toMatchObject({ type: "CUSTOM", quantity: 1 });
+    });
+
+    it.each([
+      ["forma desconocida", { shape: "HEXAGON" }],
+      ["marco vacío", { frame: "" }],
+      ["cantidad 0", { quantity: 0 }],
+      ["cantidad 51", { quantity: 51 }],
+      ["notas con caracteres de control", { notes: "hola\u0000" }],
+      ["notas demasiado largas", { notes: "a".repeat(501) }],
+    ])("rechaza %s", (_, override) => {
+      expect(inquiryPayloadSchema.safeParse({ ...custom, ...override }).success).toBe(false);
+    });
+  });
+
   it("acepta una consulta general con solo código y origen", () => {
     expect(
       inquiryPayloadSchema.safeParse({ type: "GENERAL", code: "P4W9TZ", source: "flotante /" })

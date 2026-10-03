@@ -409,7 +409,7 @@ async function seedInquiries() {
       items: {
         create: {
           reference: "A-LA-MEDIDA",
-          productName: "Espejo a la medida",
+          productName: "Espejo a la medida · Rectangular",
           widthCm: 120,
           heightCm: 180,
           isCustomSize: true,

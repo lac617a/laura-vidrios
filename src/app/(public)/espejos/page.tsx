@@ -5,8 +5,6 @@ import { CatalogView } from "@/components/catalog/catalog-view";
 import { Skeleton } from "@/components/ui/skeleton";
 import { loadCatalogFilters } from "@/lib/catalog-filters";
 import { getCatalogFacets, getCatalogPage } from "@/lib/catalog-public";
-import { getSettings } from "@/lib/settings";
-import { buildWhatsappUrl } from "@/lib/whatsapp";
 
 export const metadata: Metadata = {
   title: "Catálogo de espejos",
@@ -37,19 +35,8 @@ export default function CatalogPage({ searchParams }: PageProps<"/espejos">) {
 async function Catalog({ searchParams }: { searchParams: PageProps<"/espejos">["searchParams"] }) {
   const filters = loadCatalogFilters(await searchParams);
   // Ambas lecturas están cacheadas ("use cache") e invalidadas desde el admin.
-  const [facets, page, settings] = await Promise.all([
-    getCatalogFacets(),
-    getCatalogPage(filters),
-    getSettings(),
-  ]);
-  const whatsappHref = settings.whatsappNumber
-    ? buildWhatsappUrl(
-        settings.whatsappNumber,
-        "Hola, no encontré en el catálogo el espejo que busco. ¿Me pueden ayudar con uno a la medida?",
-      )
-    : null;
-
-  return <CatalogView facets={facets} page={page} whatsappHref={whatsappHref} />;
+  const [facets, page] = await Promise.all([getCatalogFacets(), getCatalogPage(filters)]);
+  return <CatalogView facets={facets} page={page} />;
 }
 
 function CatalogSkeleton() {

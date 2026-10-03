@@ -1,10 +1,17 @@
 import "server-only";
 
 import type { Prisma } from "@/generated/prisma/client";
+import type { MirrorShape } from "@/generated/prisma/enums";
+import { SHAPE_LABELS } from "@/lib/catalog";
+import { CUSTOM_REFERENCE } from "@/lib/custom-order";
 import { hasEqualSides } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
-import type { CatalogInquiryPayload, InquiryPayload } from "@/lib/validations/inquiry";
+import type {
+  CatalogInquiryPayload,
+  CustomInquiryPayload,
+  InquiryPayload,
+} from "@/lib/validations/inquiry";
 
 // Registro de consultas que llegan desde el botón de WhatsApp (POST /api/inquiries).
 
@@ -24,8 +31,50 @@ export async function recordInquiry(payload: InquiryPayload): Promise<{ code: st
   const data: InquiryData =
     payload.type === "CATALOG"
       ? await catalogInquiryData(payload)
-      : { type: "GENERAL", source: payload.source || null };
+      : payload.type === "CUSTOM"
+        ? await customInquiryData(payload)
+        : { type: "GENERAL", source: payload.source || null };
   return createWithCode(payload.code, data);
+}
+
+/** Medidas dentro de los límites de «A la medida» de la configuración (y lados iguales si aplica). */
+async function assertCustomSize(shape: MirrorShape, widthCm: number, heightCm: number) {
+  const { customMinCm, customMaxCm } = await getSettings();
+  const inRange = (value: number) => value >= customMinCm && value <= customMaxCm;
+  if (!inRange(widthCm) || !inRange(heightCm)) {
+    throw new InquiryError(400, "La medida está fuera del rango permitido.");
+  }
+  if (hasEqualSides(shape) && widthCm !== heightCm) {
+    throw new InquiryError(400, "En esta forma el ancho y el alto son iguales.");
+  }
+}
+
+/** Formulario «A la medida»: no hay producto; el ítem guarda todo lo que pidió el cliente. */
+async function customInquiryData(payload: CustomInquiryPayload): Promise<InquiryData> {
+  await assertCustomSize(payload.shape, payload.widthCm, payload.heightCm);
+  return {
+    type: "CUSTOM",
+    needsShipping: payload.needsShipping,
+    needsInstallation: payload.needsInstallation,
+    city: payload.city || null,
+    source: payload.source || null,
+    items: {
+      create: [
+        {
+          reference: CUSTOM_REFERENCE,
+          productName: `Espejo a la medida · ${SHAPE_LABELS[payload.shape]}`,
+          widthCm: payload.widthCm,
+          heightCm: payload.heightCm,
+          isCustomSize: true,
+          customShape: payload.shape,
+          frameDetails: payload.frame,
+          hasLed: payload.hasLed,
+          quantity: payload.quantity,
+          notes: payload.notes || null,
+        },
+      ],
+    },
+  };
 }
 
 /** Snapshot del producto y la medida tal como estaban al consultar (nombre, referencia, precio). */
@@ -49,17 +98,10 @@ async function catalogInquiryData(payload: CatalogInquiryPayload): Promise<Inqui
   let item: Prisma.InquiryItemCreateWithoutInquiryInput;
   if (payload.customSize) {
     const { widthCm, heightCm } = payload.customSize;
-    const { customMinCm, customMaxCm } = await getSettings();
-    const inRange = (value: number) => value >= customMinCm && value <= customMaxCm;
     if (!product.allowCustomSize) {
       throw new InquiryError(400, "Este producto no se hace a la medida.");
     }
-    if (!inRange(widthCm) || !inRange(heightCm)) {
-      throw new InquiryError(400, "La medida está fuera del rango permitido.");
-    }
-    if (hasEqualSides(product.shape) && widthCm !== heightCm) {
-      throw new InquiryError(400, "En esta forma el ancho y el alto son iguales.");
-    }
+    await assertCustomSize(product.shape, widthCm, heightCm);
     item = {
       product: { connect: { id: product.id } },
       reference: product.reference,

@@ -11,10 +11,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { WhatsappIcon } from "@/components/whatsapp-icon";
 import { cn } from "@/lib/utils";
 
-// Las secciones nuevas (A la medida, S7) se agregan aquí.
 const LINKS = [
   { href: "/", label: "Inicio" },
   { href: "/espejos", label: "Catálogo" },
+  { href: "/a-la-medida", label: "A la medida" },
 ] as const;
 
 function isActive(pathname: string | null, href: string) {

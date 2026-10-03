@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildCustomInquiryMessage,
   buildGeneralInquiryMessage,
   buildProductInquiryMessage,
   buildWhatsappUrl,
@@ -142,6 +143,83 @@ describe("buildProductInquiryMessage", () => {
       }),
     );
     expect(longest.length).toBeLessThan(2000);
+  });
+});
+
+describe("buildCustomInquiryMessage", () => {
+  const base = {
+    shapeLabel: "Rectangular",
+    sizeLabel: "120 × 180 cm",
+    frame: "Aluminio negro",
+    hasLed: true,
+    quantity: 1,
+    notes: "Para pared de baño, esquinas redondeadas",
+    needsShipping: false,
+    needsInstallation: true,
+    city: "Bogotá",
+    code: "P4W9TZ",
+  };
+
+  it("arma el mensaje del PRD (segundo ejemplo)", () => {
+    expect(buildCustomInquiryMessage(base)).toBe(
+      [
+        "Hola, quiero cotizar un espejo a la medida:",
+        "",
+        "Forma: Rectangular",
+        "Medida: 120 × 180 cm",
+        "Marco: Aluminio negro",
+        "Luz LED: Sí",
+        "Cantidad: 1",
+        "Notas: Para pared de baño, esquinas redondeadas",
+        "",
+        "Necesito: instalación",
+        "Ciudad: Bogotá",
+        "",
+        "Código de consulta: #P4W9TZ",
+      ].join("\n"),
+    );
+  });
+
+  it("sin notas, servicios ni código", () => {
+    const message = buildCustomInquiryMessage({
+      ...base,
+      hasLed: false,
+      notes: "  ",
+      needsInstallation: false,
+      city: "",
+      code: null,
+    });
+    expect(message).toBe(
+      [
+        "Hola, quiero cotizar un espejo a la medida:",
+        "",
+        "Forma: Rectangular",
+        "Medida: 120 × 180 cm",
+        "Marco: Aluminio negro",
+        "Luz LED: No",
+        "Cantidad: 1",
+      ].join("\n"),
+    );
+  });
+
+  it("notas de varias líneas y el máximo permitido caben en la URL", () => {
+    const url = buildWhatsappUrl(
+      "573001234567",
+      buildCustomInquiryMessage({
+        ...base,
+        shapeLabel: "Orgánico",
+        sizeLabel: "250 × 250 cm",
+        frame: "Á".repeat(80),
+        quantity: 50,
+        notes: `${"Ñ".repeat(250)}\n${"é".repeat(249)}`,
+        needsShipping: true,
+        city: "Á".repeat(60),
+      }),
+    );
+    expect(new URL(url).searchParams.get("text")).toContain(`Notas: ${"Ñ".repeat(250)}\n`);
+    // Peor caso (todo con tildes, que se codifican en 6 caracteres): ~4.200. Con 500 caracteres
+    // de notas sin tildes, la URL queda por debajo de 1.000.
+    expect(url.length).toBeLessThan(4500);
   });
 });
 

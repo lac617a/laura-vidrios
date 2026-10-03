@@ -1,29 +1,35 @@
 "use client";
 
-import { RulerIcon, TruckIcon, WrenchIcon } from "lucide-react";
+import { RulerIcon } from "lucide-react";
+import Link from "next/link";
 import { parseAsString, useQueryState } from "nuqs";
 import { Suspense, useEffect, useId, useRef, useState } from "react";
 
+import { RadioCard } from "@/components/catalog/radio-card";
+import {
+  serviceCity,
+  ServiceOptions,
+  type ServiceInfo,
+  type ServiceValues,
+} from "@/components/catalog/service-options";
 import { Input } from "@/components/ui/input";
+import { HIDE_WHATSAPP_FLOAT, PageStyles } from "@/components/site/page-styles";
 import { WhatsappIcon } from "@/components/whatsapp-icon";
 import { AVAILABILITY_LABELS } from "@/lib/catalog";
+import { shapeSlugOf } from "@/lib/catalog-filters";
 import type { PublicProduct, PublicVariant } from "@/lib/catalog-public";
-import { COLOMBIA_CITIES } from "@/lib/colombia-cities";
 import { formatCOP, formatMedida, hasEqualSides } from "@/lib/format";
 import { inquirySource, registerInquiry, useInquiryCode } from "@/lib/inquiry-client";
 import { cn } from "@/lib/utils";
-import { buildProductInquiryMessage, buildWhatsappUrl, INQUIRY_CITY_MAX } from "@/lib/whatsapp";
+import { buildProductInquiryMessage, buildWhatsappUrl } from "@/lib/whatsapp";
 
 const CUSTOM = "otra";
 
-export type PurchaseContext = {
+export type PurchaseContext = ServiceInfo & {
   whatsappNumber: string;
   siteUrl: string;
   customMinCm: number;
   customMaxCm: number;
-  coverageAreas: string[];
-  shippingInfo: string | null;
-  installationInfo: string | null;
 };
 
 const variantKey = (variant: PublicVariant) => `${variant.widthCm}x${variant.heightCm}`;
@@ -61,9 +67,12 @@ function PanelContent({
 }) {
   const [customWidth, setCustomWidth] = useState("");
   const [customHeight, setCustomHeight] = useState("");
-  const [needsShipping, setNeedsShipping] = useState(false);
-  const [needsInstallation, setNeedsInstallation] = useState(false);
-  const [city, setCity] = useState("");
+  const [services, setServices] = useState<ServiceValues>({
+    needsShipping: false,
+    needsInstallation: false,
+    city: "",
+  });
+  const { needsShipping, needsInstallation } = services;
   // Ids únicos: Next guarda las fichas visitadas ocultas en el DOM (<Activity>), y un `name` o
   // `id` fijo compartiría el grupo de radios o la etiqueta con la ficha oculta.
   const uid = useId();
@@ -92,9 +101,7 @@ function PanelContent({
     : customValid
       ? `${formatMedida(width, height, product.shape)} (medida personalizada)`
       : "";
-  // La ciudad solo cuenta si pidió envío o instalación (el campo se oculta al desmarcarlos).
-  const wantsServices = needsShipping || needsInstallation;
-  const serviceCity = wantsServices ? city.trim() : "";
+  const city = serviceCity(services);
 
   const code = useInquiryCode();
   const productUrl = `${context.siteUrl}/espejos/${product.slug}${
@@ -112,7 +119,7 @@ function PanelContent({
           url: productUrl,
           needsShipping,
           needsInstallation,
-          city: serviceCity,
+          city,
           code,
         }),
       )
@@ -130,7 +137,7 @@ function PanelContent({
         customSize: selected ? null : { widthCm: width, heightCm: height },
         needsShipping,
         needsInstallation,
-        city: serviceCity,
+        city,
         source: inquirySource(channel),
       },
       channel,
@@ -179,7 +186,7 @@ function PanelContent({
           <legend className="mb-3 text-sm font-semibold">Medida</legend>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {variants.map((variant) => (
-              <SizeOption
+              <RadioCard
                 key={variant.sku}
                 name={`${uid}-medida`}
                 checked={selected?.sku === variant.sku}
@@ -198,7 +205,7 @@ function PanelContent({
               />
             ))}
             {product.allowCustomSize && (
-              <SizeOption
+              <RadioCard
                 name={`${uid}-medida`}
                 checked={isCustom}
                 onSelect={() => setMedida(CUSTOM)}
@@ -251,55 +258,25 @@ function PanelContent({
                 Medidas entre {context.customMinCm} y {context.customMaxCm} cm. Te enviamos la
                 cotización por WhatsApp.
               </p>
+              <p className="text-xs text-muted-foreground">
+                ¿Otro marco, luz LED o varios espejos?{" "}
+                <Link
+                  href={`/a-la-medida?forma=${shapeSlugOf(product.shape)}`}
+                  className="font-medium text-foreground underline underline-offset-4"
+                >
+                  Diséñalo a la medida
+                </Link>
+              </p>
             </div>
           )}
         </fieldset>
       )}
 
-      <fieldset className="space-y-3">
-        <legend className="mb-3 text-sm font-semibold">¿Necesitas algo más? (opcional)</legend>
-        <ServiceCheckbox
-          id={`${uid}-shipping`}
-          icon={<TruckIcon className="size-4" aria-hidden />}
-          label="Envío"
-          checked={needsShipping}
-          onChange={setNeedsShipping}
-          info={needsShipping ? context.shippingInfo : null}
-        />
-        <ServiceCheckbox
-          id={`${uid}-installation`}
-          icon={<WrenchIcon className="size-4" aria-hidden />}
-          label="Instalación"
-          checked={needsInstallation}
-          onChange={setNeedsInstallation}
-          info={
-            needsInstallation
-              ? (context.installationInfo ??
-                (context.coverageAreas.length > 0
-                  ? `Instalamos en ${joinList(context.coverageAreas)}.`
-                  : null))
-              : null
-          }
-        />
-        {wantsServices && (
-          <label className="block space-y-1">
-            <span className="text-sm">Ciudad</span>
-            <Input
-              list={`${uid}-cities`}
-              autoComplete="address-level2"
-              placeholder="Ej. Medellín"
-              maxLength={INQUIRY_CITY_MAX}
-              value={city}
-              onChange={(event) => setCity(event.target.value)}
-            />
-            <datalist id={`${uid}-cities`}>
-              {COLOMBIA_CITIES.map((name) => (
-                <option key={name} value={name} />
-              ))}
-            </datalist>
-          </label>
-        )}
-      </fieldset>
+      <ServiceOptions
+        info={context}
+        values={services}
+        onChange={(patch) => setServices((current) => ({ ...current, ...patch }))}
+      />
 
       <div ref={ctaRef}>
         {whatsappHref ? (
@@ -357,7 +334,7 @@ function StickyConsultBar({
     "flex h-11 shrink-0 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none";
   return (
     <>
-      <ProductPageStyles />
+      <PageStyles css={PRODUCT_PAGE_CSS} />
       <div
         data-testid="sticky-cta"
         inert={!visible}
@@ -402,103 +379,5 @@ function StickyConsultBar({
 // Mientras la ficha está visible: sin botón flotante (aquí manda el botón de consulta) y con espacio
 // abajo para que la barra fija no tape el footer en el celular.
 const PRODUCT_PAGE_CSS =
-  "[data-whatsapp-float]{display:none}" +
+  HIDE_WHATSAPP_FLOAT +
   "@media (width < 64rem){body{padding-bottom:calc(4.5rem + env(safe-area-inset-bottom))}}";
-
-/**
- * Next guarda las páginas visitadas ocultas en el DOM (<Activity>). Al ocultarse la ficha, la
- * limpieza del ref desactiva la hoja con media="not all" para que no afecte a la página visible.
- * Viene en el HTML del servidor: no hay parpadeo del botón flotante al cargar.
- */
-function ProductPageStyles() {
-  return (
-    <style
-      ref={(style) => {
-        if (style) style.media = "all";
-        return () => {
-          if (style) style.media = "not all";
-        };
-      }}
-    >
-      {PRODUCT_PAGE_CSS}
-    </style>
-  );
-}
-
-function joinList(items: string[]) {
-  return items.length > 1 ? `${items.slice(0, -1).join(", ")} y ${items.at(-1)}` : items[0];
-}
-
-function SizeOption({
-  name,
-  checked,
-  onSelect,
-  label,
-  detail,
-  muted = false,
-  icon,
-}: {
-  name: string;
-  checked: boolean;
-  onSelect: () => void;
-  label: string;
-  detail?: string;
-  muted?: boolean;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <label
-      className={cn(
-        "relative flex cursor-pointer flex-col rounded-xl border px-3 py-2.5 transition-colors has-focus-visible:ring-3 has-focus-visible:ring-ring/50",
-        checked ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:border-foreground/30",
-        muted && "opacity-60",
-      )}
-    >
-      <input type="radio" name={name} checked={checked} onChange={onSelect} className="sr-only" />
-      <span className="flex items-center gap-1.5 text-sm font-medium">
-        {icon}
-        {label}
-      </span>
-      {detail && <span className="text-xs text-muted-foreground tabular-nums">{detail}</span>}
-    </label>
-  );
-}
-
-function ServiceCheckbox({
-  id,
-  icon,
-  label,
-  checked,
-  onChange,
-  info,
-}: {
-  id: string;
-  icon: React.ReactNode;
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  info: string | null;
-}) {
-  return (
-    <div>
-      <label
-        htmlFor={id}
-        className={cn(
-          "flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors has-focus-visible:ring-3 has-focus-visible:ring-ring/50",
-          checked ? "border-primary bg-primary/5" : "hover:border-foreground/30",
-        )}
-      >
-        <input
-          id={id}
-          type="checkbox"
-          checked={checked}
-          onChange={(event) => onChange(event.target.checked)}
-          className="size-4 accent-[var(--primary)]"
-        />
-        {icon}
-        <span className="text-sm">Necesito {label.toLowerCase()}</span>
-      </label>
-      {info && <p className="mt-1.5 px-1 text-xs text-muted-foreground">{info}</p>}
-    </div>
-  );
-}

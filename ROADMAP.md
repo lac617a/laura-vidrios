@@ -17,7 +17,7 @@
 | S4 | Catálogo público | `/espejos` con filtros, búsqueda y animaciones | | ✅ Hecho (falta Lighthouse sobre el deploy) |
 | S5 | Detalle de producto | `/espejos/[slug]` con galería, medidas y servicios | | ✅ Hecho |
 | S6 | Consulta por WhatsApp | Mensaje + registro de consulta con código | 🏁 **B** | ✅ Hecho en local (Hito B espera el deploy) |
-| S7 | Espejos a la medida | `/a-la-medida` con formulario guiado | | ⬜ Pendiente |
+| S7 | Espejos a la medida | `/a-la-medida` con formulario guiado | | ✅ Hecho |
 | S8 | Landing y animaciones | Página de inicio completa | | ⬜ Pendiente |
 | S9 | Seguimiento de consultas y dashboard | Gestión de consultas y KPIs | | ⬜ Pendiente |
 | S10 | Lanzamiento | SEO, rendimiento, QA, legal, go-live | 🏁 **C** | ⬜ Pendiente |
@@ -259,22 +259,22 @@ gantt
 **Depende de:** S6 (reusa `lib/whatsapp.ts` y `/api/inquiries`)
 
 **Tareas**
-- [ ] `/a-la-medida`: formulario por pasos con indicador de progreso.
-  1. Forma (tarjetas con ícono: rectangular, cuadrado, redondo, ovalado, arco, orgánico).
-  2. Medidas: ancho × alto, o diámetro si es redondo, validadas contra los límites.
-  3. Marco y acabado (opciones de la configuración).
-  4. LED sí o no, y cantidad.
-  5. Notas, servicios (envío o instalación) y ciudad.
-- [ ] Resumen final + "Enviar por WhatsApp" con el mensaje a la medida; la consulta se registra como `CUSTOM`.
-- [ ] Aviso: "Si tienes una foto o un plano del espacio, envíala en el chat".
-- [ ] El estado del formulario se guarda en el navegador por si el cliente sale y vuelve.
-- [ ] *(Stretch)* Vista previa SVG animada de la forma y la proporción (RF-M02).
-- [ ] Evento de analítica `custom_quote_click`.
-- [ ] E2E del flujo a la medida.
+- [x] `/a-la-medida`: formulario por pasos con indicador de progreso (pasos con número y check en desktop, "Paso 2 de 6" con barra en el celular; se vuelve a cualquier paso ya completo). Enlazado desde el menú, desde el catálogo sin resultados y desde "Otra medida" en la ficha, que llega con la forma elegida (`?forma=redondo`).
+  1. Forma: tarjetas con silueta (rectangular, cuadrado, redondo, ovalado, arco, orgánico y otra forma).
+  2. Medidas: ancho × alto, o un solo valor en redondos (diámetro) y cuadrados (lado), validadas contra los límites de la configuración.
+  3. Marco y acabado: opciones de la configuración + "Que me recomienden".
+  4. LED sí o no, y cantidad (1 a 50).
+  5. Notas (500 caracteres), servicios (envío o instalación) y ciudad (componente compartido con la ficha).
+- [x] Resumen final con "Cambiar" por fila + "Enviar por WhatsApp" con el mensaje del PRD (`buildCustomInquiryMessage`); la consulta se registra como `CUSTOM` con forma, medida, marco, LED, cantidad y notas. El servidor vuelve a validar los límites.
+- [x] Aviso: "¿Tienes una foto o un plano del espacio? Envíala en el chat…" (paso 5 y resumen).
+- [x] El borrador se guarda en el navegador (`localStorage`, 30 días) y se valida al volver: descarta marcos que ya no se ofrecen y nunca salta pasos incompletos.
+- [x] Vista previa animada de la forma, la proporción, el marco (color aproximado según el nombre) y la luz LED, con cotas en cm (RF-M02). Motion con `LazyMotion`; respeta `prefers-reduced-motion`.
+- [x] Evento de analítica `custom_quote_click`.
+- [x] E2E del flujo a la medida (escritorio y celular): rango inválido, mensaje exacto del PRD y registro en la BD, borrador al recargar y forma precargada desde la ficha.
 
 **Demo / terminado cuando**
-- Una medida fuera de rango no deja avanzar y explica el rango permitido.
-- La dueña recibe un mensaje a la medida con todos los campos y lo encuentra por su código.
+- [x] Una medida fuera de rango no deja avanzar y explica el rango permitido ("Las medidas van de 20 a 250 cm, en números enteros.").
+- [ ] La dueña recibe un mensaje a la medida con todos los campos y lo encuentra por su código. *Mensaje y registro verificados en local; la búsqueda por código llega en S9 y el WhatsApp real con el deploy.*
 
 ---
 

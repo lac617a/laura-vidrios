@@ -29,6 +29,11 @@ export type InquiryRow = {
     heightCm: number | null;
     isCustomSize: boolean;
     priceSnapshot: number | null;
+    customShape: string | null;
+    frameDetails: string | null;
+    hasLed: boolean | null;
+    quantity: number;
+    notes: string | null;
   }>;
 };
 
@@ -38,7 +43,9 @@ export async function findInquiry(code: string): Promise<InquiryRow | null> {
             COALESCE(json_agg(json_build_object(
               'reference', it.reference, 'productName', it."productName",
               'widthCm', it."widthCm", 'heightCm', it."heightCm",
-              'isCustomSize', it."isCustomSize", 'priceSnapshot', it."priceSnapshot"
+              'isCustomSize', it."isCustomSize", 'priceSnapshot', it."priceSnapshot",
+              'customShape', it."customShape", 'frameDetails', it."frameDetails",
+              'hasLed', it."hasLed", 'quantity', it.quantity, 'notes', it.notes
             )) FILTER (WHERE it.id IS NOT NULL), '[]') AS items
        FROM "Inquiry" i LEFT JOIN "InquiryItem" it ON it."inquiryId" = i.id
       WHERE i.code = $1

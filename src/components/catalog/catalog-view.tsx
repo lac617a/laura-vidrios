@@ -1,12 +1,7 @@
 "use client";
 
-import {
-  Loader2Icon,
-  MessageCircleIcon,
-  SearchIcon,
-  SlidersHorizontalIcon,
-  XIcon,
-} from "lucide-react";
+import { Loader2Icon, RulerIcon, SearchIcon, SlidersHorizontalIcon, XIcon } from "lucide-react";
+import Link from "next/link";
 import { useQueryStates } from "nuqs";
 import { useRef, useState, useTransition } from "react";
 
@@ -36,15 +31,7 @@ import { cn } from "@/lib/utils";
 
 type Page = { total: number; cards: CatalogCard[]; hasMore: boolean };
 
-export function CatalogView({
-  facets,
-  page,
-  whatsappHref,
-}: {
-  facets: CatalogFacets;
-  page: Page;
-  whatsappHref: string | null;
-}) {
+export function CatalogView({ facets, page }: { facets: CatalogFacets; page: Page }) {
   const [isPending, startTransition] = useTransition();
   const [filters, setFilters] = useQueryStates(catalogParsers, {
     urlKeys: catalogUrlKeys,
@@ -157,7 +144,7 @@ export function CatalogView({
           {page.cards.length > 0 ? (
             <ProductGrid cards={page.cards} />
           ) : (
-            <EmptyState onClear={clearAll} whatsappHref={whatsappHref} />
+            <EmptyState onClear={clearAll} />
           )}
         </div>
 
@@ -270,13 +257,7 @@ function ActiveFilters({
   ));
 }
 
-function EmptyState({
-  onClear,
-  whatsappHref,
-}: {
-  onClear: () => void;
-  whatsappHref: string | null;
-}) {
+function EmptyState({ onClear }: { onClear: () => void }) {
   return (
     <div className="rounded-2xl border border-dashed px-6 py-14 text-center">
       <p className="font-heading text-2xl font-semibold">No encontramos espejos con esos filtros</p>
@@ -288,16 +269,10 @@ function EmptyState({
         <Button variant="outline" className="rounded-full" onClick={onClear}>
           Ver todos los espejos
         </Button>
-        {whatsappHref && (
-          <Button
-            className="rounded-full"
-            nativeButton={false}
-            render={<a href={whatsappHref} target="_blank" rel="noopener noreferrer" />}
-          >
-            <MessageCircleIcon aria-hidden />
-            Pedir uno a la medida
-          </Button>
-        )}
+        <Button className="rounded-full" nativeButton={false} render={<Link href="/a-la-medida" />}>
+          <RulerIcon aria-hidden />
+          Diseñar uno a la medida
+        </Button>
       </div>
     </div>
   );

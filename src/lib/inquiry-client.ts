@@ -55,7 +55,8 @@ export function registerInquiry(payload: InquiryPayload, channel: string) {
   } catch {
     // Sin registro, pero WhatsApp abre igual.
   }
-  trackEvent("whatsapp_click", { type: payload.type, channel });
+  if (payload.type === "CUSTOM") trackEvent("custom_quote_click", { channel });
+  else trackEvent("whatsapp_click", { type: payload.type, channel });
 
   // En un macrotask: el navegador ya leyó el href de este clic. Si se renovara aquí mismo, React
   // podría actualizar el enlace antes de que se abra y el mensaje llevaría otro código.

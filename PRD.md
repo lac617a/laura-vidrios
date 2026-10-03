@@ -201,7 +201,7 @@ Prioridad: **P0** = MVP · **P1** = poco después del lanzamiento · **P2** = fu
 | ID | Requisito | Prioridad |
 |----|-----------|-----------|
 | RF-M01 | Formulario guiado de pocos pasos: forma → medidas (ancho × alto o diámetro) → marco y acabado → LED (sí/no) → cantidad → notas | P0 |
-| RF-M02 | Vista previa visual de la forma y la proporción elegidas, que se actualiza en vivo (SVG animado) | P1 |
+| RF-M02 | Vista previa visual de la forma y la proporción elegidas, que se actualiza en vivo (animada; también muestra el marco y la luz LED). *Hecho en S7* | P1 |
 | RF-M03 | Validación de medidas contra el mínimo y el máximo configurados en el admin, con mensaje claro si se pasa | P0 |
 | RF-M04 | Casillas de envío e instalación y ciudad, igual que en RF-D08 | P0 |
 | RF-M05 | El formulario termina en "Enviar por WhatsApp" con el mensaje a la medida, y la consulta se registra con el tipo `CUSTOM` | P0 |
