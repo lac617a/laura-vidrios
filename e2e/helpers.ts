@@ -1,10 +1,23 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
-import { deleteInquiries, resetRateLimits } from "./db";
+import { deleteInquiries, resetLoginRateLimits, resetRateLimits } from "./db";
 
 // Utilidades compartidas de las pruebas E2E del sitio público. Datos del seed: WhatsApp 573000000000.
 
 export const WHATSAPP = "https://wa.me/573000000000";
+
+/** Usuario del seed con acceso total (solo existe en la BD local y en la de CI). */
+export const ADMIN = {
+  email: "admin@local.test",
+  password: process.env.SEED_ADMIN_PASSWORD ?? "espejos-local-2026",
+};
+
+/** Inicia sesión por la API (deja la cookie en el contexto de la página). */
+export async function signInAsAdmin(page: Page) {
+  await resetLoginRateLimits();
+  const response = await page.request.post("/api/auth/sign-in/email", { data: ADMIN });
+  expect(response.ok()).toBe(true);
+}
 
 /** Códigos de las consultas creadas en este worker: se borran al terminar cada archivo. */
 const createdCodes: string[] = [];
@@ -42,7 +55,23 @@ export async function openWhatsapp(page: Page, link: Locator) {
   await (await popup).close();
 }
 
+/**
+ * Espera a que React hidrate el elemento: antes, un clic o lo escrito no llega al estado (en
+ * WebKit la hidratación tarda más). React guarda las props en el nodo al hidratarlo.
+ */
+export async function waitForHydration(locator: Locator) {
+  await expect
+    .poll(() =>
+      locator.evaluate((element) =>
+        Object.keys(element).some((key) => key.startsWith("__reactProps")),
+      ),
+    )
+    .toBe(true);
+  return locator;
+}
+
 /** Las opciones tipo tarjeta son radios ocultos dentro de una etiqueta: se toca la etiqueta. */
 export async function chooseOption(page: Page, name: string | RegExp) {
-  await page.getByRole("radio", { name }).locator("xpath=..").click();
+  const radio = await waitForHydration(page.getByRole("radio", { name }));
+  await radio.locator("xpath=..").click();
 }

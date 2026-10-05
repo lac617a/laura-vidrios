@@ -73,3 +73,36 @@ export function countActiveFilters(filters: CatalogFilters): number {
     filters.precioMin !== null || filters.precioMax !== null,
   ].filter(Boolean).length;
 }
+
+/** Nombre del filtro para la analítica: los rangos (mínimo y máximo) cuentan como uno. */
+const FILTER_EVENT_NAMES: Partial<Record<keyof CatalogFilters, string>> = {
+  q: "busqueda",
+  categoria: "categoria",
+  forma: "forma",
+  marco: "marco",
+  led: "led",
+  disponible: "disponible",
+  anchoMin: "ancho",
+  anchoMax: "ancho",
+  altoMin: "alto",
+  altoMax: "alto",
+  precioMin: "precio",
+  precioMax: "precio",
+};
+
+function isApplied(value: unknown): boolean {
+  if (Array.isArray(value)) return value.length > 0;
+  return value !== null && value !== undefined && value !== "" && value !== false;
+}
+
+/** Filtros que un cambio aplica (no los que quita), para el evento `filter_used`. */
+export function appliedFilterNames(
+  patch: Partial<Record<keyof CatalogFilters, unknown>>,
+): string[] {
+  const names = new Set<string>();
+  for (const [key, value] of Object.entries(patch)) {
+    const name = FILTER_EVENT_NAMES[key as keyof CatalogFilters];
+    if (name && isApplied(value)) names.add(name);
+  }
+  return [...names];
+}

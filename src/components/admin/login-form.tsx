@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { authClient } from "@/lib/auth-client";
 
 const loginSchema = z.object({
@@ -35,9 +36,11 @@ export function LoginForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginValues>({
+    // Sin defaultValues: así se conserva lo escrito (o autocompletado) antes de hidratar.
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
   });
+  // Antes de hidratar, "Ingresar" haría un envío nativo del formulario: queda desactivado.
+  const hydrated = useHydrated();
 
   async function onSubmit(values: LoginValues) {
     setError(null);
@@ -55,7 +58,7 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+    <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate>
       <FieldGroup>
         <Field data-invalid={Boolean(errors.email)}>
           <FieldLabel htmlFor="email">Correo</FieldLabel>
@@ -85,7 +88,7 @@ export function LoginForm() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        <Button type="submit" size="lg" disabled={isSubmitting} className="w-full">
+        <Button type="submit" size="lg" disabled={!hydrated || isSubmitting} className="w-full">
           {isSubmitting && <Loader2Icon className="animate-spin" aria-hidden />}
           Ingresar
         </Button>

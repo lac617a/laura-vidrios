@@ -241,7 +241,7 @@ export function HowItWorksSection() {
               <span className="flex size-14 items-center justify-center rounded-2xl border bg-background shadow-sm">
                 <step.icon className="size-6" aria-hidden />
               </span>
-              <p className="mt-6 font-heading text-5xl font-semibold text-foreground/15 tabular-nums">
+              <p className="mt-6 font-heading text-5xl font-semibold text-foreground/55 tabular-nums">
                 0{index + 1}
               </p>
               <h3 className="mt-1 text-xl font-semibold">{step.title}</h3>

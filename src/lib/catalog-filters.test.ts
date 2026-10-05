@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { countActiveFilters, loadCatalogFilters, shapeSlugOf } from "@/lib/catalog-filters";
+import {
+  appliedFilterNames,
+  countActiveFilters,
+  loadCatalogFilters,
+  shapeSlugOf,
+} from "@/lib/catalog-filters";
 
 describe("loadCatalogFilters", () => {
   it("lee la URL en español", () => {
@@ -44,5 +49,18 @@ describe("shapeSlugOf", () => {
   it("traduce el enum a la URL", () => {
     expect(shapeSlugOf("ROUND")).toBe("redondo");
     expect(shapeSlugOf("ORGANIC")).toBe("organico");
+  });
+});
+
+describe("appliedFilterNames", () => {
+  it("cuenta los rangos como un solo filtro", () => {
+    expect(appliedFilterNames({ anchoMin: 40, anchoMax: 90 })).toEqual(["ancho"]);
+    expect(appliedFilterNames({ precioMin: null, precioMax: 500000 })).toEqual(["precio"]);
+  });
+
+  it("ignora lo que se quita y la paginación", () => {
+    expect(appliedFilterNames({ forma: null, led: false, q: "", pagina: null })).toEqual([]);
+    expect(appliedFilterNames({ marco: [] })).toEqual([]);
+    expect(appliedFilterNames({ forma: ["redondo"], q: "luna" })).toEqual(["forma", "busqueda"]);
   });
 });

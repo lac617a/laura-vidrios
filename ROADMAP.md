@@ -2,7 +2,7 @@
 
 > Plan de sprints por feature, derivado del [PRD.md](PRD.md). Los IDs (`RF-…`) remiten a los requisitos del PRD.
 > **Duración sugerida:** sprints de 1 semana; si el ritmo real es otro, se ajusta sin cambiar el orden.
-> **Última actualización:** 2026-10-03
+> **Última actualización:** 2026-10-05
 
 ---
 
@@ -20,7 +20,7 @@
 | S7 | Espejos a la medida | `/a-la-medida` con formulario guiado | | ✅ Hecho |
 | S8 | Landing y animaciones | Página de inicio completa | | ✅ Hecho (Lighthouse 92–93 local) |
 | S9 | Seguimiento de consultas y dashboard | Gestión de consultas y KPIs | | ✅ Hecho |
-| S10 | Lanzamiento | SEO, rendimiento, QA, legal, go-live | 🏁 **C** | ⬜ Pendiente |
+| S10 | Lanzamiento | SEO, rendimiento, QA, legal, go-live | 🏁 **C** | 🟨 Código listo (falta deploy, QA real y legal) |
 | S11+ | Post-MVP | Mi selección, contenido, admin avanzado | | ⬜ Pendiente |
 
 ### Hitos
@@ -333,20 +333,24 @@ gantt
 
 **Objetivo:** salir a producción con confianza.
 **Depende de:** S0 – S9
+**Checklist de salida:** [docs/lanzamiento.md](docs/lanzamiento.md)
 
 **Tareas**
-- [ ] **SEO:** metadata por página, `sitemap.ts`, `robots.ts`, canónicas (las variantes apuntan al producto base) y `og:locale es_CO`.
-- [ ] **Accesibilidad:** auditoría WCAG 2.2 AA (contraste, foco, teclado, `alt`).
-- [ ] **Rendimiento:** Lighthouse móvil ≥ 90 en `/`, `/espejos`, detalle y `/a-la-medida`.
-- [ ] **Pruebas:** suite E2E completa en CI (catálogo → WhatsApp, a la medida → WhatsApp, login del admin).
-- [ ] **QA:** matriz de dispositivos (iPhone, Android de gama media, desktop Chrome y Safari, WhatsApp app y Web).
-- [ ] **Legal:** política de datos (Ley 1581) y precios con IVA revisados por un asesor.
-- [ ] **Analítica:** eventos verificados en el panel.
-- [ ] **Monitoreo:** logs de Vercel y alertas de errores (Sentry opcional).
-- [ ] **Infraestructura:** plan comercial de Vercel (Pro), backups y restauración point-in-time de Neon verificados.
-- [ ] **Redirección por dominio:** lógica 308 en `proxy.ts` lista, activada solo cuando exista `CANONICAL_HOST`.
+- [x] **SEO:** metadata por página, `sitemap.ts` (solo publicados, con fotos; se regenera con los tags del catálogo), `robots.ts` (previews con `Disallow: /`), canónicas (las variantes apuntan al producto base), `og:locale es_CO` y `metadataBase` con la URL real de cada deploy. Ícono propio (SVG, ICO y Apple) en lugar del de Next.
+- [x] **Accesibilidad:** auditoría automática WCAG 2.2 AA con axe en todas las páginas públicas y del panel (escritorio, Android e iPhone). Corregido: contraste de los números de "Cómo funciona" y de los contadores de pestañas, gráfica enfocable estando oculta, foco visible en la lista de consultas, `h1` en el login, textos del menú lateral en español y enlace «Saltar al contenido».
+- [x] **Rendimiento:** Lighthouse móvil local: inicio 91–93, catálogo 90, ficha 90, a la medida 91; accesibilidad y SEO 100. *(Falta repetirlo sobre el deploy.)*
+- [x] **Pruebas:** suite E2E en CI (catálogo → WhatsApp, a la medida → WhatsApp, login con contraseña errada, regreso a la página pedida, cierre de sesión y bloqueo de intentos, consultas del admin, accesibilidad), en Chrome, Android e iPhone (WebKit).
+- [ ] **QA:** matriz de dispositivos reales (iPhone, Android de gama media, desktop Chrome y Safari, WhatsApp app y Web). WebKit automatizado; Safari de escritorio con `E2E_WEBKIT=all`.
+- [ ] **Legal:** política de datos (Ley 1581) y precios con IVA revisados por un asesor (puntos en el checklist).
+- [x] **Analítica:** evento `filter_used`; las vistas de producto salen de las visitas por página. *(Falta verlos en el panel tras el deploy.)*
+- [x] **Monitoreo:** `instrumentation.ts` registra cada error del servidor en una línea JSON con su `digest`; pantallas de error en español (sitio, panel y global) con el código. *(Faltan las alertas en Vercel.)*
+- [ ] **Infraestructura:** plan Pro de Vercel, backups y restauración point-in-time de Neon verificados.
+- [x] **Redirección por dominio:** 308 en `next.config.ts` (`redirects` con `missing host`), activa solo con `CANONICAL_HOST` y nunca en previews; Vercel la aplica sin ejecutar funciones. Cabeceras de seguridad básicas.
 - [ ] **Contenido:** revisión del catálogo real con la dueña (fotos, precios, medidas y destacados).
 - [ ] **Go-live:** checklist final y anuncio en redes.
+
+**Hallazgos de la revisión**
+- En Safari, lo escrito en el login antes de hidratar se borraba (los `defaultValues` de React Hook Form) y un envío temprano podía mandar la contraseña en la URL. Ahora se respeta lo escrito, el botón espera a la hidratación y el formulario es `method="post"`.
 
 **Demo / terminado cuando**
 - 🏁 **Hito C:** sitio público anunciado y la dueña recibiendo consultas reales.
@@ -369,6 +373,7 @@ gantt
 Se hace **cuando se compre el dominio**, sin esperar un sprint en particular (la redirección ya queda lista en S10):
 
 - [ ] Agregar el dominio en Vercel y configurar el DNS.
+- [ ] Definir `CANONICAL_HOST` **solo** en el entorno de producción.
 - [ ] Actualizar `NEXT_PUBLIC_SITE_URL`, `BETTER_AUTH_URL` y `CANONICAL_HOST`.
 - [ ] Verificar la redirección 308 desde `*.vercel.app`, para que los enlaces viejos en los chats sigan funcionando.
 - [ ] Dar de alta el sitio en Google Search Console y enviar el sitemap.

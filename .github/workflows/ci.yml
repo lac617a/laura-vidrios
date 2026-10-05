@@ -74,12 +74,15 @@ jobs:
       - name: Build
         run: pnpm build
 
-      # E2E del flujo de venta contra el build de producción (pnpm start) y la BD del seed.
-      - name: Instalar Chromium para Playwright
-        run: pnpm exec playwright install --with-deps chromium
+      # E2E (flujos de venta, login, accesibilidad WCAG) contra el build de producción
+      # (pnpm start) y la BD del seed: Chrome de escritorio, Android e iPhone (WebKit).
+      - name: Instalar navegadores para Playwright
+        run: pnpm exec playwright install --with-deps chromium webkit
 
       - name: E2E
         run: pnpm e2e
+        env:
+          E2E_WEBKIT: iphone
 
       - name: Reporte de Playwright si falla
         if: failure()

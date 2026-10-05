@@ -64,3 +64,8 @@ export async function deleteInquiries(codes: string[]) {
 export async function resetRateLimits() {
   await pool.query(`DELETE FROM "RequestThrottle" WHERE key LIKE 'inquiries:%'`);
 }
+
+/** Límite de intentos de login de Better Auth (activo en producción, como en CI): se vacía. */
+export async function resetLoginRateLimits() {
+  await pool.query(`DELETE FROM "rateLimit"`);
+}

@@ -326,6 +326,23 @@ export async function getPrerenderedProductSlugs(): Promise<string[]> {
   return products.map((product) => product.slug);
 }
 
+/** Productos publicados para el sitemap: slug, última edición y hasta 5 fotos. */
+export async function getSitemapProducts() {
+  "use cache";
+  cacheTag(PRODUCTS_TAG, CATEGORIES_TAG);
+  cacheLife("max");
+
+  return prisma.product.findMany({
+    where: PUBLISHED,
+    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+    select: {
+      slug: true,
+      updatedAt: true,
+      images: { orderBy: { position: "asc" }, take: 5, select: { publicId: true } },
+    },
+  });
+}
+
 // ── Página de inicio ────────────────────────────────────────
 
 export type LandingCategory = {

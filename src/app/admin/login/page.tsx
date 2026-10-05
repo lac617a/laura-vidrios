@@ -17,7 +17,9 @@ export default function LoginPage() {
       </Suspense>
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="font-heading text-3xl">Panel de gestión</CardTitle>
+          <CardTitle className="font-heading text-3xl">
+            <h1>Panel de gestión</h1>
+          </CardTitle>
           <CardDescription>Ingresa con tu correo y contraseña.</CardDescription>
         </CardHeader>
         <CardContent>

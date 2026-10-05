@@ -137,7 +137,7 @@ export function InquiryFilters({
               )}
             >
               {status === "todas" ? "Todas" : INQUIRY_STATUS_LABELS[status]}
-              <span className="text-xs tabular-nums opacity-70">{counts[status] ?? 0}</span>
+              <span className="text-xs tabular-nums">{counts[status] ?? 0}</span>
             </Link>
           );
         })}

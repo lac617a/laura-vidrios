@@ -5,6 +5,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { WhatsappFloat } from "@/components/site/whatsapp-float";
+import { SKIP_TARGET_ID, SkipLink } from "@/components/skip-link";
 import { getSettings } from "@/lib/settings";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -18,8 +19,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function PublicLayout({ children }: LayoutProps<"/">) {
   return (
     <NuqsAdapter>
+      <SkipLink />
       <SiteHeader />
-      <div className="flex flex-1 flex-col">{children}</div>
+      <div id={SKIP_TARGET_ID} tabIndex={-1} className="flex flex-1 flex-col outline-none">
+        {children}
+      </div>
       <SiteFooter />
       <FloatingWhatsapp />
       {/* Solo el sitio público: el admin no se mide. */}

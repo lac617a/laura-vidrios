@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
 
+import { getSiteUrl } from "@/lib/site-url";
+
 import "./globals.css";
 
 // Tipografías provisionales (PRD §11): serif para títulos, sans para texto.
@@ -16,7 +18,8 @@ const heading = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  // Base de las URL absolutas (canónicas, og:image): dominio configurado o el host del deploy.
+  metadataBase: new URL(getSiteUrl()),
   title: "Catálogo de espejos",
   description: "Espejos de todo tipo y a la medida, con envío e instalación en Colombia.",
 };

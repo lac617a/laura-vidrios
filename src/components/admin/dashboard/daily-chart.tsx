@@ -22,7 +22,12 @@ export function DailyInquiriesChart({ data }: { data: DailyPoint[] }) {
   return (
     <>
       <ChartContainer config={config} className="aspect-auto h-56 w-full" aria-hidden>
-        <BarChart data={data} margin={{ top: 8, right: 4, left: -16, bottom: 0 }}>
+        {/* Sin capa de teclado: está oculta a lectores de pantalla y la tabla tiene los datos. */}
+        <BarChart
+          data={data}
+          margin={{ top: 8, right: 4, left: -16, bottom: 0 }}
+          accessibilityLayer={false}
+        >
           <CartesianGrid vertical={false} strokeDasharray="3 3" />
           <XAxis
             dataKey="label"

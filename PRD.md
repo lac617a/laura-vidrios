@@ -265,7 +265,7 @@ Prioridad: **P0** = MVP · **P1** = poco después del lanzamiento · **P2** = fu
 | **Accesibilidad** | WCAG 2.2 AA: contraste, foco visible, navegación con teclado, `alt` en todas las imágenes (por defecto el nombre del producto) y `prefers-reduced-motion` |
 | **Seguridad** | `/admin` protegido en dos capas: chequeo rápido en `proxy.ts` y verificación real de sesión en cada layout o Server Action. Validación con Zod en el servidor, rate limit en login y en consultas, y secretos solo en variables de entorno |
 | **Datos** | Backups y restauración point-in-time de Neon (según el plan). Las consultas guardan un *snapshot* del nombre, la referencia y el precio, para que el historial no cambie si se edita el producto |
-| **Analítica** | Eventos `whatsapp_click`, `custom_quote_click`, `filter_used` y `product_view` con una herramienta respetuosa de la privacidad (**Vercel Web Analytics**, elegida en S6: sin cookies; los eventos personalizados requieren el plan Pro). Las visitas no se guardan en la BD |
+| **Analítica** | Eventos `whatsapp_click`, `custom_quote_click` y `filter_used`; las vistas de producto son las visitas a `/espejos/[slug]` que la herramienta ya cuenta por página. Todo con una herramienta respetuosa de la privacidad (**Vercel Web Analytics**, elegida en S6: sin cookies; los eventos personalizados requieren el plan Pro). Las visitas no se guardan en la BD |
 | **Localización** | `lang="es-CO"`, `og:locale` `es_CO`, precios en COP sin decimales (`$ 850.000`), medidas en centímetros, fechas en zona `America/Bogota` |
 | **Legal (Colombia)** | Política de tratamiento de datos personales según la Ley 1581 de 2012 (se guardan nombre, teléfono y ciudad del cliente que registra la dueña). Precios visibles con IVA incluido (Estatuto del Consumidor, Ley 1480 de 2011). Validar los textos con un asesor legal antes del lanzamiento |
 
@@ -327,7 +327,7 @@ BETTER_AUTH_URL=
 
 # Sitio
 NEXT_PUBLIC_SITE_URL=   # hoy: https://<proyecto>.vercel.app · luego: dominio propio
-CANONICAL_HOST=         # al tener dominio, proxy.ts redirige (308) cualquier otro host a este
+CANONICAL_HOST=         # al tener dominio, next.config.ts redirige (308) cualquier otro host a este (solo producción)
 
 # Cloudinary
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
@@ -594,7 +594,7 @@ El plan detallado por sprint y feature está en **[ROADMAP.md](ROADMAP.md)**.
 | Arranque en frío de Neon (*scale-to-zero*) | Páginas públicas cacheadas. El registro de consultas va en segundo plano y no afecta al cliente |
 | Emojis o caracteres especiales que se ven mal en algunos clientes de WhatsApp | Plantilla por defecto sin emojis, `encodeURIComponent` y pruebas en iOS, Android y Web |
 | La vista previa del enlace no aparece | Imagen OG de 1200 × 630 y menos de 300 KB, URL absoluta y metadatos validados |
-| Al conectar el dominio propio se rompen los enlaces ya enviados por WhatsApp | Redirección 308 desde el subdominio de Vercel hacia `CANONICAL_HOST` en `proxy.ts`, conservando ruta y parámetros |
+| Al conectar el dominio propio se rompen los enlaces ya enviados por WhatsApp | Redirección 308 desde el subdominio de Vercel hacia `CANONICAL_HOST` en `next.config.ts` (`redirects`, sin ejecutar funciones por visita), conservando ruta y parámetros |
 | Incumplir la Ley 1581 (datos personales) o mostrar precios sin IVA | Página de política de datos desde el MVP, precios con IVA incluido y revisión legal antes del lanzamiento |
 | El cliente quiere enviar fotos del espacio (a la medida) | `wa.me` no permite adjuntos. El formulario le indica que envíe la foto en el chat después del mensaje |
 

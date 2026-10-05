@@ -40,7 +40,7 @@ export function InquiryList({
               scroll={false}
               aria-current={open ? "true" : undefined}
               className={cn(
-                "grid gap-x-4 gap-y-1 px-4 py-3 transition-colors hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-none md:grid-cols-[7.5rem_minmax(0,1fr)_10rem_7rem] md:items-center",
+                "grid gap-x-4 gap-y-1 px-4 py-3 transition-colors hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset md:grid-cols-[7.5rem_minmax(0,1fr)_10rem_7rem] md:items-center",
                 inquiry.status === "NEW" && "bg-sky-50/60 dark:bg-sky-950/20",
                 open && "bg-muted",
               )}

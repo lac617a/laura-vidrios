@@ -2,6 +2,7 @@ import { Suspense } from "react";
 
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { UserMenu } from "@/components/admin/user-menu";
+import { SKIP_TARGET_ID, SkipLink } from "@/components/skip-link";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
@@ -19,6 +20,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
 
   return (
     <SidebarProvider>
+      <SkipLink />
       <AdminSidebar
         businessName={businessName}
         userMenu={
@@ -40,7 +42,13 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           <Separator orientation="vertical" className="mr-1 data-[orientation=vertical]:h-4" />
           <span className="text-sm text-muted-foreground">Panel de gestión</span>
         </header>
-        <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 md:px-8 md:py-8">{children}</div>
+        <div
+          id={SKIP_TARGET_ID}
+          tabIndex={-1}
+          className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 outline-none md:px-8 md:py-8"
+        >
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

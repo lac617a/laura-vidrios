@@ -124,7 +124,7 @@ export function ProductFilters({
               )}
             >
               {tab.label}
-              <span className="tabular-nums opacity-70">{counts[tab.value]}</span>
+              <span className="tabular-nums">{counts[tab.value]}</span>
             </Link>
           );
         })}

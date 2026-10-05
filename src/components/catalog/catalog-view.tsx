@@ -17,8 +17,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { trackEvent } from "@/lib/analytics";
 import { SHAPE_LABELS } from "@/lib/catalog";
 import {
+  appliedFilterNames,
   catalogParsers,
   catalogUrlKeys,
   countActiveFilters,
@@ -46,6 +48,7 @@ export function CatalogView({ facets, page }: { facets: CatalogFacets; page: Pag
   /** Cambiar un filtro vuelve a la primera página. */
   function update(patch: FilterPatch) {
     void setFilters({ ...patch, pagina: null });
+    for (const filter of appliedFilterNames(patch)) trackEvent("filter_used", { filter });
   }
 
   function clearAll() {
