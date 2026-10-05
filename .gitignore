@@ -50,3 +50,5 @@ next-env.d.ts
 # claude code (configuración local y worktrees de otras sesiones)
 .claude/settings.local.json
 .claude/worktrees/
+
+.vercel
