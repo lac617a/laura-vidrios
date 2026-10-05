@@ -19,7 +19,7 @@
 | S6 | Consulta por WhatsApp | Mensaje + registro de consulta con código | 🏁 **B** | ✅ Hecho en local (Hito B espera el deploy) |
 | S7 | Espejos a la medida | `/a-la-medida` con formulario guiado | | ✅ Hecho |
 | S8 | Landing y animaciones | Página de inicio completa | | ✅ Hecho (Lighthouse 92–93 local) |
-| S9 | Seguimiento de consultas y dashboard | Gestión de consultas y KPIs | | ⬜ Pendiente |
+| S9 | Seguimiento de consultas y dashboard | Gestión de consultas y KPIs | | ✅ Hecho |
 | S10 | Lanzamiento | SEO, rendimiento, QA, legal, go-live | 🏁 **C** | ⬜ Pendiente |
 | S11+ | Post-MVP | Mi selección, contenido, admin avanzado | | ⬜ Pendiente |
 
@@ -313,17 +313,19 @@ gantt
 **Depende de:** S6 y S7
 
 **Tareas**
-- [ ] `/admin/consultas`: tabla con código, fecha, tipo, productos, medida, servicios, ciudad y estado.
-- [ ] Filtros por estado, tipo, fecha, ciudad y producto. **Búsqueda por código** destacada arriba.
-- [ ] Detalle en drawer: ítems (snapshot), enlace al producto, cambio de estado, nombre y teléfono del cliente, y notas.
-- [ ] Botón "Abrir chat" (`wa.me/<teléfono del cliente>`) cuando hay teléfono registrado.
-- [ ] Contador de consultas nuevas en el menú del admin.
-- [ ] **Dashboard:** consultas de hoy, 7 y 30 días; consultas por estado; tasa de cierre; top 5 productos; catálogo frente a a la medida; ciudades con más consultas.
-- [ ] Gráficas con Recharts (charts de shadcn).
+- [x] `/admin/consultas`: lista con código, fecha (hora de Colombia), tipo, productos y medida, servicios, ciudad, cliente y estado. Tabla en desktop, tarjetas en el celular; las nuevas resaltadas.
+- [x] Filtros en la URL por estado (pestañas con conteo), tipo, fecha (hoy, 7 y 30 días), ciudad y producto. **Búsqueda por código** destacada arriba: acepta "#k7m2qx" tal como llega del chat (también nombre o teléfono) y, si hay un solo resultado, abre el detalle directo.
+- [x] Detalle en panel lateral (`?consulta=id`, enlazable): ítems con su snapshot (forma, medida, marco, LED, cantidad, notas, precio), enlaces a la ficha y al producto en el admin, servicios, ciudad, origen; cambio de estado con un toque; nombre, celular (normalizado a 57…) y notas internas.
+- [x] Botón "Abrir chat" (`wa.me/<celular del cliente>`) cuando hay celular guardado.
+- [x] "Consultas" activo en el menú, con el contador de consultas nuevas (se actualiza tras cada cambio).
+- [x] **Dashboard** en Resumen: consultas de hoy, 7 y 30 días; tasa de cierre (vendidas / total, 30 días); consultas por día; por estado; catálogo frente a a la medida y generales; top 5 espejos; top 5 ciudades. Cada cifra lleva a la lista filtrada. Días en hora de Colombia (`src/lib/dates.ts`).
+- [x] Gráfica de consultas por día con Recharts (chart de shadcn, solo en el admin) y tabla equivalente para lectores de pantalla; el resto como listas con barras y cifras en texto.
+- [x] Seed: 24 consultas deterministas repartidas en 30 días para el dashboard.
+- [x] E2E: buscar el código copiado del chat, pasarla a Cotizada, validar el celular, guardar el cliente y "Abrir chat" (escritorio y celular); resumen y contador del menú.
 
 **Demo / terminado cuando**
-- La dueña copia el código de un mensaje de WhatsApp, lo encuentra y lo pasa a "Cotizada" desde el móvil.
-- El dashboard cuadra con los datos de prueba.
+- [x] La dueña copia el código de un mensaje de WhatsApp, lo encuentra y lo pasa a "Cotizada" desde el móvil (E2E en Pixel 7 y probado a mano).
+- [x] El dashboard cuadra con los datos de prueba (comparado con SQL en hora de Colombia: hoy 4, 7 días 9, 30 días 27, cierre 26 %, top productos y ciudades).
 
 ---
 

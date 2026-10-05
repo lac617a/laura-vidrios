@@ -3,6 +3,7 @@
 import type {
   Availability,
   InquiryStatus,
+  InquiryType,
   MirrorShape,
   ProductStatus,
 } from "@/generated/prisma/enums";
@@ -36,6 +37,15 @@ export const INQUIRY_STATUS_LABELS: Record<InquiryStatus, string> = {
   WON: "Vendida",
   LOST: "Perdida",
 };
+
+export const INQUIRY_TYPE_LABELS: Record<InquiryType, string> = {
+  CATALOG: "Catálogo",
+  CUSTOM: "A la medida",
+  GENERAL: "General",
+};
+
+/** Orden del embudo: Nueva → Contactada → Cotizada → Vendida / Perdida (PRD RF-A14). */
+export const INQUIRY_STATUSES = Object.keys(INQUIRY_STATUS_LABELS) as InquiryStatus[];
 
 export const SHAPES = Object.keys(SHAPE_LABELS) as MirrorShape[];
 export const AVAILABILITIES = Object.keys(AVAILABILITY_LABELS) as Availability[];

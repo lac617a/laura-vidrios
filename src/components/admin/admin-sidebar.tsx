@@ -32,11 +32,14 @@ type NavItem = { href: string; label: string; icon: LucideIcon; soon?: boolean }
 // Las secciones marcadas `soon` se habilitan en sus sprints (ver ROADMAP.md).
 const NAV: NavItem[] = [
   { href: "/admin", label: "Resumen", icon: LayoutDashboardIcon },
+  { href: "/admin/consultas", label: "Consultas", icon: MessagesSquareIcon },
   { href: "/admin/productos", label: "Productos", icon: PackageIcon },
   { href: "/admin/categorias", label: "Categorías", icon: FolderTreeIcon },
-  { href: "/admin/consultas", label: "Consultas", icon: MessagesSquareIcon, soon: true },
   { href: "/admin/configuracion", label: "Configuración", icon: SettingsIcon },
 ];
+
+/** Contenido extra junto a una sección (ej. el número de consultas nuevas), por href. */
+export type NavBadges = Partial<Record<string, ReactNode>>;
 
 function isActive(pathname: string, href: string) {
   return href === "/admin" ? pathname === href : pathname.startsWith(href);
@@ -45,9 +48,11 @@ function isActive(pathname: string, href: string) {
 export function AdminSidebar({
   businessName,
   userMenu,
+  badges = {},
 }: {
   businessName: string;
   userMenu: ReactNode;
+  badges?: NavBadges;
 }) {
   return (
     <Sidebar collapsible="icon">
@@ -66,8 +71,8 @@ export function AdminSidebar({
         <SidebarGroup>
           <SidebarGroupContent>
             {/* usePathname es dato de URL: va en Suspense para no bloquear el prerender. */}
-            <Suspense fallback={<NavMenu pathname={null} />}>
-              <ActiveNavMenu />
+            <Suspense fallback={<NavMenu pathname={null} badges={badges} />}>
+              <ActiveNavMenu badges={badges} />
             </Suspense>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -78,12 +83,12 @@ export function AdminSidebar({
   );
 }
 
-function ActiveNavMenu() {
-  return <NavMenu pathname={usePathname()} />;
+function ActiveNavMenu({ badges }: { badges: NavBadges }) {
+  return <NavMenu pathname={usePathname()} badges={badges} />;
 }
 
 /** Menú de secciones; sin pathname (fallback) no marca ninguna como activa. */
-function NavMenu({ pathname }: { pathname: string | null }) {
+function NavMenu({ pathname, badges }: { pathname: string | null; badges: NavBadges }) {
   const { setOpenMobile } = useSidebar();
 
   return (
@@ -99,14 +104,17 @@ function NavMenu({ pathname }: { pathname: string | null }) {
               <SidebarMenuBadge>Pronto</SidebarMenuBadge>
             </>
           ) : (
-            <SidebarMenuButton
-              isActive={pathname !== null && isActive(pathname, href)}
-              tooltip={label}
-              render={<Link href={href} onClick={() => setOpenMobile(false)} />}
-            >
-              <Icon aria-hidden />
-              <span>{label}</span>
-            </SidebarMenuButton>
+            <>
+              <SidebarMenuButton
+                isActive={pathname !== null && isActive(pathname, href)}
+                tooltip={label}
+                render={<Link href={href} onClick={() => setOpenMobile(false)} />}
+              >
+                <Icon aria-hidden />
+                <span>{label}</span>
+              </SidebarMenuButton>
+              {badges[href]}
+            </>
           )}
         </SidebarMenuItem>
       ))}

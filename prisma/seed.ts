@@ -18,6 +18,7 @@ import {
   ProductStatus,
   Role,
 } from "../src/generated/prisma/client";
+import { INQUIRY_CODE_ALPHABET } from "../src/lib/inquiry-code";
 import { normalizeSearchText, slugify } from "../src/lib/text";
 
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
@@ -429,6 +430,94 @@ async function seedInquiries() {
       source: "landing",
     },
   });
+
+  await seedInquiryHistory();
+}
+
+/**
+ * 24 consultas repartidas en los últimos 30 días para el dashboard (S9). Deterministas: mismos
+ * datos en cada seed (sin Math.random), relativas a la fecha en que se corre.
+ */
+async function seedInquiryHistory() {
+  const published = await prisma.product.findMany({
+    where: { status: "PUBLISHED" },
+    orderBy: { reference: "asc" },
+    include: { variants: { orderBy: { position: "asc" } } },
+  });
+  const cities = [
+    "Bogotá",
+    "Medellín",
+    "Cali",
+    "Bogotá",
+    "Barranquilla",
+    null,
+    "Medellín",
+    "Bogotá",
+  ];
+  const statuses = [
+    InquiryStatus.NEW,
+    InquiryStatus.CONTACTED,
+    InquiryStatus.QUOTED,
+    InquiryStatus.WON,
+    InquiryStatus.LOST,
+    InquiryStatus.QUOTED,
+    InquiryStatus.WON,
+    InquiryStatus.CONTACTED,
+  ];
+  const day = 24 * 60 * 60 * 1000;
+  const now = Date.now();
+
+  for (let n = 0; n < 24; n++) {
+    const createdAt = new Date(now - ((n * 37) % 30) * day - (n % 5) * 60 * 60 * 1000);
+    const type =
+      n % 6 === 5 ? InquiryType.CUSTOM : n % 8 === 7 ? InquiryType.GENERAL : InquiryType.CATALOG;
+    // Unos productos más consultados que otros, para que el top 5 tenga sentido.
+    const product = published[(n * n) % Math.min(6, published.length)];
+    const variant = product.variants[n % product.variants.length];
+    const city = cities[n % cities.length];
+
+    await prisma.inquiry.create({
+      data: {
+        // SEED + 2 caracteres del alfabeto de códigos: únicos y buscables como los reales.
+        code: `SEED${INQUIRY_CODE_ALPHABET[Math.floor(n / 31)]}${INQUIRY_CODE_ALPHABET[n % 31]}`,
+        type,
+        status: statuses[n % statuses.length],
+        needsShipping: n % 3 === 0,
+        needsInstallation: n % 4 === 0,
+        city,
+        source: ["detalle", "barra-movil", "landing-destacados", "flotante /"][n % 4],
+        createdAt,
+        ...(type === InquiryType.CATALOG && {
+          items: {
+            create: {
+              productId: product.id,
+              variantId: variant.id,
+              reference: variant.sku,
+              productName: product.name,
+              widthCm: variant.widthCm,
+              heightCm: variant.heightCm,
+              priceSnapshot: variant.price,
+            },
+          },
+        }),
+        ...(type === InquiryType.CUSTOM && {
+          items: {
+            create: {
+              reference: "A-LA-MEDIDA",
+              productName: "Espejo a la medida · Ovalado",
+              widthCm: 60 + n,
+              heightCm: 90 + n,
+              isCustomSize: true,
+              customShape: MirrorShape.OVAL,
+              frameDetails: "Biselado",
+              hasLed: n % 2 === 0,
+              quantity: 1 + (n % 3),
+            },
+          },
+        }),
+      },
+    });
+  }
 }
 
 main()

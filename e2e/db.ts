@@ -18,6 +18,7 @@ const pool = new pg.Pool({ connectionString: url, max: 2, allowExitOnIdle: true 
 export type InquiryRow = {
   code: string;
   type: string;
+  status: string;
   source: string | null;
   city: string | null;
   needsShipping: boolean;
@@ -39,7 +40,7 @@ export type InquiryRow = {
 
 export async function findInquiry(code: string): Promise<InquiryRow | null> {
   const { rows } = await pool.query<InquiryRow>(
-    `SELECT i.code, i.type, i.source, i.city, i."needsShipping", i."needsInstallation",
+    `SELECT i.code, i.type, i.status, i.source, i.city, i."needsShipping", i."needsInstallation",
             COALESCE(json_agg(json_build_object(
               'reference', it.reference, 'productName', it."productName",
               'widthCm', it."widthCm", 'heightCm', it."heightCm",
