@@ -39,7 +39,10 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       <SidebarInset>
         <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b bg-background/90 px-4 backdrop-blur">
           <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-1 data-[orientation=vertical]:h-4" />
+          <Separator
+            orientation="vertical"
+            className="mr-1 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center"
+          />
           <span className="text-sm text-muted-foreground">Panel de gestión</span>
         </header>
         <div
